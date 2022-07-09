@@ -1368,11 +1368,10 @@ BEGIN
                -- NULL AS GameCoverImageUrl,               
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
 			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate             
-          FROM vw_SpeedRunSummary rn
-		  JOIN tbl_SpeedRun_Video_Detail rn1 ON rn1.SpeedRunID = rn.ID             
+          FROM vw_SpeedRunSummary rn                
           WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
           AND rn.EmbeddedVideoLinks IS NOT NULL
-		  AND rn1.ChannelID IN ('22510310','UCI3DTtB-a3fJPjKtQ5kYHfA')
+          AND EXISTS (SELECT 1 FROM tbl_SpeedRun_Video_Detail rn1 WHERE rn1.SpeedRunID = rn.ID AND rn1.ChannelID IN ('22510310','UCI3DTtB-a3fJPjKtQ5kYHfA'))
 		  ORDER BY rn.ID DESC
           LIMIT TopAmount;           
      END IF;
