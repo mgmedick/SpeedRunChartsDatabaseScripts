@@ -1261,21 +1261,21 @@ BEGIN
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
 			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate              
 		  FROM vw_SpeedRunSummary rn,        
-		  LATERAL (SELECT MAX(rn1.`Rank`) AS Value
+		  LATERAL (SELECT FLOOR(5 / 100 * (MAX(rn1.`Rank`) + 1)) AS Value
 					FROM vw_SpeedRunSummaryLite rn1
 					WHERE rn1.GameID = rn.GameID
 					AND rn1.CategoryID = rn.CategoryID
 					AND COALESCE(rn1.LevelID,'') = COALESCE(rn.LevelID,'')
 					AND COALESCE(rn1.SubCategoryVariableValueIDs,'') = COALESCE(rn.SubCategoryVariableValueIDs,'')
 					AND rn1.`Rank` IS NOT NULL
-				) AS MaxRank
+					HAVING MAX(rn1.`Rank`) > 1
+				) AS MaxRankPercent
 		  WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
 		  AND rn.EmbeddedVideoLinks IS NOT NULL
-		  AND rn.`Rank` IS NOT NULL
-		  AND MaxRank.Value > 1
-		  AND rn.`Rank` <= CASE WHEN FLOOR((5 / 100 * (MaxRank.Value + 1))) < 1 THEN 1 ELSE FLOOR((5 / 100 * (MaxRank.Value + 1))) END
+		  AND rn.`Rank` IS NOT NULL	  
+		  AND rn.`Rank` <= CASE WHEN MaxRankPercent.Value < 1 THEN 1 ELSE MaxRankPercent.Value END
 		  ORDER BY rn.ID DESC
-          LIMIT TopAmount;                  
+          LIMIT TopAmount;                    
 	 -- first
      ELSEIF SpeedRunListCategoryID = 2 THEN
           SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
