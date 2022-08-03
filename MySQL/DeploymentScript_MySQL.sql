@@ -1115,15 +1115,21 @@ CREATE VIEW vw_UserAccount AS
 
     SELECT ua.ID AS UserAccountID,
 	ua.Username,
+	ua.Email,
 	ue.IsDarkTheme,
-	SpeedRunListCategoryIDs.Value AS SpeedRunListCategoryIDs
+	COALESCE(SpeedRunListCategoryIDs.Value, DefaultSpeedRunListCategoryIDs.Value) AS SpeedRunListCategoryIDs
     FROM tbl_UserAccount ua
 	LEFT JOIN tbl_UserAccount_Setting ue ON ue.UserAccountID = ua.ID
 	LEFT JOIN LATERAL (
 		SELECT GROUP_CONCAT(CONVERT(uc.SpeedRunListCategoryID,CHAR) ORDER BY uc.UserAccountID SEPARATOR ',') Value
 	    FROM tbl_UserAccount_SpeedRunListCategory uc
 	    WHERE uc.UserAccountID = ua.ID   
-	) SpeedRunListCategoryIDs ON TRUE;
+	) SpeedRunListCategoryIDs ON TRUE
+	LEFT JOIN LATERAL (
+		SELECT GROUP_CONCAT(CONVERT(sc.ID,CHAR) SEPARATOR ',') Value
+	    FROM tbl_SpeedRunListCategory sc
+	    WHERE sc.IsDefault = 1 
+	) DefaultSpeedRunListCategoryIDs ON TRUE;
 
 -- vw_UserSpeedRunCom
 DROP VIEW IF EXISTS vw_UserSpeedRunCom;
@@ -2404,6 +2410,8 @@ BEGIN
 	CREATE INDEX IDX_tbl_Category_CategoryTypeID ON tbl_Category (CategoryTypeID);
 	-- vw_User
 	CREATE INDEX IDX_tbl_SpeedRun_Player_UserID ON tbl_SpeedRun_Player (UserID);
+	-- tbl_speedrun_speedruncomid
+	CREATE INDEX IDX_tbl_SpeedRun_SpeedRunComID_SpeedRunComID ON tbl_SpeedRun_SpeedRunComID (SpeedRunComID);
 END $$
 DELIMITER ;
 
