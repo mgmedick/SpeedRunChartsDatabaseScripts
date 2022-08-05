@@ -9,7 +9,9 @@ CREATE VIEW vw_SpeedRunSummaryLite AS
            rn.LevelID,
            SubCategoryVariableValueIDs.Value AS SubCategoryVariableValueIDs,
            Players.Value AS Players,
-           rn.`Rank`
+           rn.`Rank`,
+           rn.VerifyDate,
+           rn.ImportedDate
     FROM tbl_SpeedRun rn   
   	LEFT JOIN LATERAL (
 		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) ORDER BY rv.ID SEPARATOR ',') Value

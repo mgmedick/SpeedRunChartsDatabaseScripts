@@ -178,7 +178,7 @@ BEGIN
 					AND COALESCE(rn1.LevelID,'') = COALESCE(rn.LevelID,'')
 					AND COALESCE(rn1.SubCategoryVariableValueIDs,'') = COALESCE(rn.SubCategoryVariableValueIDs,'')
 					AND rn1.ID <> rn.ID
-					AND rn1.ImportedDate BETWEEN DATE_ADD(rn.ImportedDate, INTERVAL -5 DAY) AND rn.ImportedDate
+					AND COALESCE(rn1.VerifyDate, rn1.ImportedDate) BETWEEN DATE_ADD(COALESCE(rn.VerifyDate, rn.ImportedDate), INTERVAL -5 DAY) AND COALESCE(rn.VerifyDate, rn.ImportedDate)
 				) AS ImportedDate            
           WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
           AND rn.EmbeddedVideoLinks IS NOT NULL
