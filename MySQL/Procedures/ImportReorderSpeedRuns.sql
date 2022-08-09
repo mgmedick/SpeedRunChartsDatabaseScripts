@@ -111,8 +111,8 @@ BEGIN
         FROM InsertedIDs dn
         JOIN tbl_SpeedRun_VariableValue_Full rv ON rv.SpeedRunID = dn.OldID;  
         
-        INSERT INTO tbl_SpeedRun_Video_Full_Ordered (SpeedRunID, VideoLinkUrl, EmbeddedVideoLinkUrl, ThumbnailLinkUrl)
-		SELECT dn.NewID, rv.VideoLinkUrl, rv.EmbeddedVideoLinkUrl, rv.ThumbnailLinkUrl
+        INSERT INTO tbl_SpeedRun_Video_Full_Ordered (SpeedRunID, VideoLinkUrl, EmbeddedVideoLinkUrl, ThumbnailLinkUrl, IsProcessed)
+		SELECT dn.NewID, rv.VideoLinkUrl, rv.EmbeddedVideoLinkUrl, rv.ThumbnailLinkUrl, rv.IsProcessed
 		FROM InsertedIDs dn
 		JOIN tbl_SpeedRun_Video_Full rv ON rv.SpeedRunID = dn.OldID      
 		ORDER BY dn.NewID;	

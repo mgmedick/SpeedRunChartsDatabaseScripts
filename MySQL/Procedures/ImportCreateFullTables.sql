@@ -581,6 +581,7 @@ BEGIN
 	    VideoLinkUrl varchar (500) NOT NULL,
 	    EmbeddedVideoLinkUrl varchar (250) NULL,
 		ThumbnailLinkUrl varchar(250) NULL,
+		IsProcessed bit NOT NULL,
 		PRIMARY KEY (ID) 	
 	);
 
@@ -594,6 +595,7 @@ BEGIN
 	    VideoLinkUrl varchar (500) NOT NULL,
 	    EmbeddedVideoLinkUrl varchar (250) NULL,
 		ThumbnailLinkUrl varchar(250) NULL,
+		IsProcessed bit NOT NULL,		
 		PRIMARY KEY (ID) 	
 	);
 

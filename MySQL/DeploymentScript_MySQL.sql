@@ -590,6 +590,7 @@ CREATE TABLE tbl_SpeedRun_Video
     VideoLinkUrl varchar (500) NOT NULL,
     EmbeddedVideoLinkUrl varchar (250) NULL,
 	ThumbnailLinkUrl varchar(250) NULL,
+	IsProcessed bit NOT NULL,
 	PRIMARY KEY (ID) 	
 );
 -- ALTER TABLE tbl_SpeedRun_Video ADD CONSTRAINT FK_tbl_SpeedRun_Video_tbl_SpeedRun FOREIGN KEY (SpeedRunID) REFERENCES tbl_SpeedRun (ID);
@@ -1035,9 +1036,9 @@ CREATE VIEW vw_SpeedRunSummary AS
 		WHERE rp.SpeedRunID = rn.ID
 	) Players ON TRUE       
   	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONCAT(rd.EmbeddedVideoLinkUrl, '|', COALESCE(rd.ThumbnailLinkUrl,''), '|', CONVERT(rd1.ViewCount,CHAR)) ORDER BY rd.ID SEPARATOR ',') Value
+		SELECT GROUP_CONCAT(CONCAT(rd.EmbeddedVideoLinkUrl, '|', COALESCE(rd.ThumbnailLinkUrl,''), '|', CONVERT(COALESCE(rd1.ViewCount,''),CHAR)) ORDER BY rd.ID SEPARATOR ',') Value
 	    FROM tbl_SpeedRun_Video rd
-		JOIN tbl_SpeedRun_Video_Detail rd1 ON rd1.SpeedRunVideoID = rd.ID 
+		LEFT JOIN tbl_SpeedRun_Video_Detail rd1 ON rd1.SpeedRunVideoID = rd.ID 
 	    WHERE rd.SpeedRunID = rn.ID
 	    AND rd.EmbeddedVideoLinkUrl IS NOT NULL
 	) EmbeddedVideoLinks ON TRUE;
@@ -2109,6 +2110,7 @@ BEGIN
 	    VideoLinkUrl varchar (500) NOT NULL,
 	    EmbeddedVideoLinkUrl varchar (250) NULL,
 		ThumbnailLinkUrl varchar(250) NULL,
+		IsProcessed bit NOT NULL,
 		PRIMARY KEY (ID) 	
 	);
 
@@ -2122,6 +2124,7 @@ BEGIN
 	    VideoLinkUrl varchar (500) NOT NULL,
 	    EmbeddedVideoLinkUrl varchar (250) NULL,
 		ThumbnailLinkUrl varchar(250) NULL,
+		IsProcessed bit NOT NULL,		
 		PRIMARY KEY (ID) 	
 	);
 
@@ -2282,8 +2285,8 @@ BEGIN
         FROM InsertedIDs dn
         JOIN tbl_SpeedRun_VariableValue_Full rv ON rv.SpeedRunID = dn.OldID;  
         
-        INSERT INTO tbl_SpeedRun_Video_Full_Ordered (SpeedRunID, VideoLinkUrl, EmbeddedVideoLinkUrl, ThumbnailLinkUrl)
-		SELECT dn.NewID, rv.VideoLinkUrl, rv.EmbeddedVideoLinkUrl, rv.ThumbnailLinkUrl
+        INSERT INTO tbl_SpeedRun_Video_Full_Ordered (SpeedRunID, VideoLinkUrl, EmbeddedVideoLinkUrl, ThumbnailLinkUrl, IsProcessed)
+		SELECT dn.NewID, rv.VideoLinkUrl, rv.EmbeddedVideoLinkUrl, rv.ThumbnailLinkUrl, rv.IsProcessed
 		FROM InsertedIDs dn
 		JOIN tbl_SpeedRun_Video_Full rv ON rv.SpeedRunID = dn.OldID      
 		ORDER BY dn.NewID;	
@@ -2631,6 +2634,28 @@ BEGIN
     END IF;
 END $$
 DELIMITER ;
+
+-- ImportRebuildIndexes
+DROP PROCEDURE IF EXISTS ImportRebuildIndexes;
+
+DELIMITER $$
+CREATE PROCEDURE ImportRebuildIndexes()
+BEGIN
+	set @tables_like = null;
+	set @optimize = null;
+	set @show_tables = concat("show tables where", ifnull(concat(" `Tables_in_", database(), "` like '", @tables_like, "' and"), ''), " (@optimize:=concat_ws(',',@optimize,`Tables_in_", database() ,"`))");
+	
+	Prepare `bd` from @show_tables;
+	EXECUTE `bd`;
+	DEALLOCATE PREPARE `bd`;
+	
+	set @optimize := concat('ANALYZE TABLE ', @optimize);
+	PREPARE `sql` FROM @optimize;
+	EXECUTE `sql`;
+	DEALLOCATE PREPARE `sql`;
+	
+	set @show_tables = null, @optimize = null, @tables_like = null;
+END
 
 /*********************************************/
 -- populate tables
