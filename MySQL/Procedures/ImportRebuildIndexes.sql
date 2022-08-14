@@ -18,5 +18,5 @@ BEGIN
 	DEALLOCATE PREPARE `sql`;
 	
 	set @show_tables = null, @optimize = null, @tables_like = null;
-END
-
+END $$
+DELIMITER ;

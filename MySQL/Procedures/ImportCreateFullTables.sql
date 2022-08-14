@@ -581,7 +581,6 @@ BEGIN
 	    VideoLinkUrl varchar (500) NOT NULL,
 	    EmbeddedVideoLinkUrl varchar (250) NULL,
 		ThumbnailLinkUrl varchar(250) NULL,
-		IsProcessed bit NOT NULL,
 		PRIMARY KEY (ID) 	
 	);
 
@@ -594,8 +593,7 @@ BEGIN
 	    SpeedRunID int NOT NULL,
 	    VideoLinkUrl varchar (500) NOT NULL,
 	    EmbeddedVideoLinkUrl varchar (250) NULL,
-		ThumbnailLinkUrl varchar(250) NULL,
-		IsProcessed bit NOT NULL,		
+		ThumbnailLinkUrl varchar(250) NULL,		
 		PRIMARY KEY (ID) 	
 	);
 

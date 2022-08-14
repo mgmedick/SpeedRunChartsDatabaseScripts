@@ -590,7 +590,6 @@ CREATE TABLE tbl_SpeedRun_Video
     VideoLinkUrl varchar (500) NOT NULL,
     EmbeddedVideoLinkUrl varchar (250) NULL,
 	ThumbnailLinkUrl varchar(250) NULL,
-	IsProcessed bit NOT NULL,
 	PRIMARY KEY (ID) 	
 );
 -- ALTER TABLE tbl_SpeedRun_Video ADD CONSTRAINT FK_tbl_SpeedRun_Video_tbl_SpeedRun FOREIGN KEY (SpeedRunID) REFERENCES tbl_SpeedRun (ID);
@@ -2110,7 +2109,6 @@ BEGIN
 	    VideoLinkUrl varchar (500) NOT NULL,
 	    EmbeddedVideoLinkUrl varchar (250) NULL,
 		ThumbnailLinkUrl varchar(250) NULL,
-		IsProcessed bit NOT NULL,
 		PRIMARY KEY (ID) 	
 	);
 
@@ -2123,8 +2121,7 @@ BEGIN
 	    SpeedRunID int NOT NULL,
 	    VideoLinkUrl varchar (500) NOT NULL,
 	    EmbeddedVideoLinkUrl varchar (250) NULL,
-		ThumbnailLinkUrl varchar(250) NULL,
-		IsProcessed bit NOT NULL,		
+		ThumbnailLinkUrl varchar(250) NULL,		
 		PRIMARY KEY (ID) 	
 	);
 
@@ -2285,8 +2282,8 @@ BEGIN
         FROM InsertedIDs dn
         JOIN tbl_SpeedRun_VariableValue_Full rv ON rv.SpeedRunID = dn.OldID;  
         
-        INSERT INTO tbl_SpeedRun_Video_Full_Ordered (SpeedRunID, VideoLinkUrl, EmbeddedVideoLinkUrl, ThumbnailLinkUrl, IsProcessed)
-		SELECT dn.NewID, rv.VideoLinkUrl, rv.EmbeddedVideoLinkUrl, rv.ThumbnailLinkUrl, rv.IsProcessed
+        INSERT INTO tbl_SpeedRun_Video_Full_Ordered (SpeedRunID, VideoLinkUrl, EmbeddedVideoLinkUrl, ThumbnailLinkUrl)
+		SELECT dn.NewID, rv.VideoLinkUrl, rv.EmbeddedVideoLinkUrl, rv.ThumbnailLinkUrl
 		FROM InsertedIDs dn
 		JOIN tbl_SpeedRun_Video_Full rv ON rv.SpeedRunID = dn.OldID      
 		ORDER BY dn.NewID;	
@@ -2655,13 +2652,12 @@ BEGIN
 	DEALLOCATE PREPARE `sql`;
 	
 	set @show_tables = null, @optimize = null, @tables_like = null;
-END
+END $$
+DELIMITER ;
 
 /*********************************************/
 -- populate tables
 /*********************************************/
-SET @currdate = (UTC_TIMESTAMP);
-
 INSERT INTO tbl_CategoryType (ID, Name)
 SELECT '0', 'PerGame'
 UNION ALL
@@ -2727,7 +2723,11 @@ SELECT 'IsBulkReloadRunning', NULL, '0', NULL
 UNION ALL
 SELECT 'IsBulkReloadPostProcessRunning', NULL, '0', NULL
 UNION ALL
-SELECT 'IsProcessGameCoverImages', NULL, '1', NULL;
+SELECT 'IsProcessGameCoverImages', NULL, '1', NULL
+UNION ALL
+SELECT 'ImportLastBulkReloadDate',NULL,NULL,NULL
+UNION ALL
+SELECT 'ImportLastUpdateSpeedRunsDate',NULL,NULL,NULL;
 
 INSERT INTO tbl_TimingMethod (ID, Name)
 SELECT '0', 'GameTime'
