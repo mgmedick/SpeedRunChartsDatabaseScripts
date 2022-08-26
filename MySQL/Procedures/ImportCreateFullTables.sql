@@ -603,7 +603,7 @@ BEGIN
 	CREATE TABLE tbl_SpeedRun_Video_Detail_Full(
 		SpeedRunVideoID int NOT NULL,
 		SpeedRunID int NOT NULL,
-		ChannelID varchar(50) NULL,
+		ChannelCode varchar(50) NULL,
 		ViewCount int NULL,
 		PRIMARY KEY (SpeedRunVideoID) 	
 	);
@@ -614,7 +614,7 @@ BEGIN
 	CREATE TABLE tbl_SpeedRun_Video_Detail_Full_Ordered(
 		SpeedRunVideoID int NOT NULL,
 		SpeedRunID int NOT NULL,
-		ChannelID varchar(50) NULL,
+		ChannelCode varchar(50) NULL,
 		ViewCount int NULL,
 		PRIMARY KEY (SpeedRunVideoID) 	
 	);

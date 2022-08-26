@@ -602,11 +602,12 @@ DROP TABLE IF EXISTS tbl_SpeedRun_Video_Detail;
 CREATE TABLE tbl_SpeedRun_Video_Detail(
 	SpeedRunVideoID int NOT NULL,
 	SpeedRunID int NOT NULL,
-	ChannelID varchar(50) NULL,
+	ChannelCode varchar(50) NULL,
 	ViewCount int NULL,
 	PRIMARY KEY (SpeedRunVideoID) 	
 );
-CREATE INDEX IDX_tbl_SpeedRun_Video_Detail_SpeedRunID_ChannelID ON tbl_SpeedRun_Video_Detail (SpeedRunID, ChannelID);
+CREATE INDEX IDX_tbl_SpeedRun_Video_Detail_SpeedRunID ON tbl_SpeedRun_Video_Detail (SpeedRunID);
+CREATE INDEX IDX_tbl_SpeedRun_Video_Detail_ChannelCode_SpeedRunID ON tbl_SpeedRun_Video_Detail (ChannelCode, SpeedRunID);
 
 -- tbl_SpeedRunListCategory
 DROP TABLE IF EXISTS tbl_SpeedRunListCategory;
@@ -657,6 +658,17 @@ CREATE TABLE tbl_UserAccount_SpeedRunListCategory(
 	UserAccountID int NOT NULL,
 	SpeedRunListCategoryID int NOT NULL,
 	PRIMARY KEY (ID)		
+);
+
+-- tbl_Channel
+DROP TABLE IF EXISTS tbl_Channel;
+
+CREATE TABLE tbl_Channel
+( 
+    ID int NOT NULL AUTO_INCREMENT,
+    Code varchar (25) NOT NULL,
+    Name varchar (50) NOT NULL,
+    PRIMARY KEY (ID)
 );
 
 /*********************************************/
@@ -1370,19 +1382,20 @@ BEGIN
           AND MaxViewCount.VideoCount = 1
           ORDER BY rn.ID DESC
           LIMIT TopAmount;           
-	 -- GDQ
+	 -- Events
      ELSEIF SpeedRunListCategoryID = 7 THEN
           SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
                rn.GameCoverImageUrl, 
                -- NULL AS GameCoverImageUrl,               
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
 			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate             
-          FROM vw_SpeedRunSummary rn                
+          FROM vw_SpeedRunSummary rn
+          JOIN tbl_SpeedRun_Video_Detail rn1 ON rn1.SpeedRunID = rn.ID
+          JOIN tbl_Channel ca ON ca.Code = rn1.ChannelCode    
           WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
           AND rn.EmbeddedVideoLinks IS NOT NULL
-          AND EXISTS (SELECT 1 FROM tbl_SpeedRun_Video_Detail rn1 WHERE rn1.SpeedRunID = rn.ID AND rn1.ChannelID IN ('22510310','UCI3DTtB-a3fJPjKtQ5kYHfA'))
 		  ORDER BY rn.ID DESC
-          LIMIT TopAmount;  
+          LIMIT TopAmount;   
 	 -- First
      ELSEIF SpeedRunListCategoryID = 8 THEN
           SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
@@ -2131,7 +2144,7 @@ BEGIN
 	CREATE TABLE tbl_SpeedRun_Video_Detail_Full(
 		SpeedRunVideoID int NOT NULL,
 		SpeedRunID int NOT NULL,
-		ChannelID varchar(50) NULL,
+		ChannelCode varchar(50) NULL,
 		ViewCount int NULL,
 		PRIMARY KEY (SpeedRunVideoID) 	
 	);
@@ -2142,7 +2155,7 @@ BEGIN
 	CREATE TABLE tbl_SpeedRun_Video_Detail_Full_Ordered(
 		SpeedRunVideoID int NOT NULL,
 		SpeedRunID int NOT NULL,
-		ChannelID varchar(50) NULL,
+		ChannelCode varchar(50) NULL,
 		ViewCount int NULL,
 		PRIMARY KEY (SpeedRunVideoID) 	
 	);
@@ -2306,8 +2319,8 @@ BEGIN
 	  	JOIN OldVideoIDs rn1 ON rn1.RowNum = rn.RowNum
 	  	SET rn.OldVideoID = rn1.OldVideoID;	
 	
-        INSERT INTO tbl_SpeedRun_Video_Detail_Full_Ordered (SpeedRunVideoID, SpeedRunID, ChannelID, ViewCount)
-		SELECT dn.NewVideoID, dn.NewID, rv.ChannelID, rv.ViewCount
+        INSERT INTO tbl_SpeedRun_Video_Detail_Full_Ordered (SpeedRunVideoID, SpeedRunID, ChannelCode, ViewCount)
+		SELECT dn.NewVideoID, dn.NewID, rv.ChannelCode, rv.ViewCount
 		FROM InsertedVideoIDs dn
 		JOIN tbl_SpeedRun_Video_Detail_Full rv ON rv.SpeedRunVideoID = dn.OldVideoID;
 
@@ -2453,7 +2466,8 @@ BEGIN
 	CREATE INDEX IDX_tbl_SpeedRun_Guest_SpeedRunID_GuestID ON tbl_SpeedRun_Guest (SpeedRunID, GuestID);
 	-- vw_SpeedRunSummary
 	CREATE INDEX IDX_tbl_SpeedRun_Video_SpeedRunID_PlusInclude ON tbl_SpeedRun_Video (SpeedRunID, EmbeddedVideoLinkUrl, ThumbnailLinkUrl);
-	CREATE INDEX IDX_tbl_SpeedRun_Video_Detail_SpeedRunID_ChannelID ON tbl_SpeedRun_Video_Detail (SpeedRunID, ChannelID);
+	CREATE INDEX IDX_tbl_SpeedRun_Video_Detail_SpeedRunID ON tbl_SpeedRun_Video_Detail (SpeedRunID);
+	CREATE INDEX IDX_tbl_SpeedRun_Video_Detail_ChannelCode_SpeedRunID ON tbl_SpeedRun_Video_Detail (ChannelCode, SpeedRunID);
 	CREATE INDEX IDX_tbl_Category_CategoryTypeID ON tbl_Category (CategoryTypeID);
 	-- vw_User
 	CREATE INDEX IDX_tbl_SpeedRun_Player_UserID ON tbl_SpeedRun_Player (UserID);
@@ -2772,6 +2786,132 @@ UNION ALL
 SELECT '5','Hot','Hot','Most recent popular runs based on twitch/youtube view counts',1,'1'
 UNION ALL
 SELECT '7','GDQ','GDQ','Newly verified GDQ runs',1,'6';
+
+INSERT INTO tbl_Channel(Code, Name)
+SELECT '22510310', 'gamesdonequick'
+UNION ALL
+SELECT 'UCI3DTtB-a3fJPjKtQ5kYHfA', 'Games Done Quick'
+UNION ALL
+SELECT '54739364', 'esamarathon'
+UNION ALL
+SELECT 'UC3Oe-jfrIqEGygxYBYyN6jQ', 'ESA Speedrunning'
+UNION ALL
+SELECT '30685577', 'bsg_marathon'
+UNION ALL
+SELECT 'UCAz_hjVviI8yfsSCLVT9gNQ', 'Benelux Speedrunner Gathering'
+UNION ALL
+SELECT 'UC3amJzoWdv_cf_O1jAXilcw', 'United Kingdom Speedrunner Gathering'
+UNION ALL
+SELECT 'UCId5mQSBVAOrOdLdfY1J4VQ', 'SpeedDemosArchiveSDA'
+UNION ALL
+SELECT '54739364', 'esamarathon'
+UNION ALL
+SELECT 'UC3Oe-jfrIqEGygxYBYyN6jQ', 'ESA Speedrunning'
+UNION ALL
+SELECT '30685577', 'bsg_marathon'
+UNION ALL
+SELECT 'UCAz_hjVviI8yfsSCLVT9gNQ', 'Benelux Speedrunner Gathering'
+UNION ALL
+SELECT 'UC3amJzoWdv_cf_O1jAXilcw', 'United Kingdom Speedrunner Gathering'
+UNION ALL
+SELECT 'UCId5mQSBVAOrOdLdfY1J4VQ', 'SpeedDemosArchiveSDA'
+UNION ALL
+SELECT '104477535', 'nasamarathon'
+UNION ALL
+SELECT 'UCYeXD06E5nIk7BwRr5Q954w', 'NASA Marathon'
+UNION ALL
+SELECT '70518383', 'rpglimitbreak'
+UNION ALL
+SELECT 'UCJn8IWyQmWEIfpVjX7o2VnQ', 'RPG Limit Break'
+UNION ALL
+SELECT '60522923', 'FinnRuns ry'
+UNION ALL
+SELECT 'UCCRSplaoV7Cg22MSxbIbb6Q', 'FinnRuns ry'
+UNION ALL
+SELECT '105042012', 'Calithon'
+UNION ALL
+SELECT 'UCVbK6vDL35e9HKzpTZwR2SQ', 'Calithon'
+UNION ALL
+SELECT '92570994', 'ausspeedruns'
+UNION ALL
+SELECT 'UCjmGR3lE2OJxc9ocNVuUgbA', 'Australian Speedruns'
+UNION ALL
+SELECT '125282480', 'buckeyespeedbash'
+UNION ALL
+SELECT 'UC3ayhrbeYfw-YqPWk8yU5KA', 'Buckeye Speed Bash'
+UNION ALL
+SELECT '134850221', 'rtainjapan'
+UNION ALL
+SELECT 'UCV8gEA4XEycdFx-myEpokLg', 'RTA in Japan'
+UNION ALL
+SELECT '160145980', 'gramypomagamy'
+UNION ALL
+SELECT 'UCCMLGwlKcnCZE8WwidGJPzQ', 'Gramy Szybko Pomagamy Skutecznie'
+UNION ALL
+SELECT '77426186', 'midwestspeedfest'
+UNION ALL
+SELECT 'UCxZU3lVJEAW5P-PI9ozlqOg', 'Midwest Speedfest'
+UNION ALL
+SELECT '163454212', 'uksmlive'
+UNION ALL
+SELECT 'UCo04ydmakpLAbYR3wed-knA', 'UKSM'
+UNION ALL
+SELECT '168086830', 'nwspeedfest'
+UNION ALL
+SELECT 'UCxE5zKNAJg8P3UDhEP59_kw', 'NorthWest SpeedFest'
+UNION ALL
+SELECT '234463737', 'helveticspeedrunners'
+UNION ALL
+SELECT 'UCQYgMHDeiRptzNNTQVfB_EQ', 'Helvetic Speedrunners'
+UNION ALL
+SELECT '234463737', 'helveticspeedrunners'
+UNION ALL
+SELECT 'UCQYgMHDeiRptzNNTQVfB_EQ', 'Helvetic Speedrunners'
+UNION ALL
+SELECT '99437655', 'shotsfiredmarathon'
+UNION ALL
+SELECT 'UCpszWgQxBaV8Iq9W8n_evgA', 'Shots Fired Marathon'
+UNION ALL
+SELECT '99437655', 'shotsfiredmarathon'
+UNION ALL
+SELECT 'UCpszWgQxBaV8Iq9W8n_evgA', 'Shots Fired Marathon'
+UNION ALL
+SELECT '80145304', 'speedgaming'
+UNION ALL
+SELECT 'UC-lm_blkZ_ujmRSwYcJY2ow', 'SpeedGaming'
+UNION ALL
+SELECT '192857056', 'valuethon'
+UNION ALL
+SELECT 'UCZvxx12KmWhDeCHh48MEKjg', 'theboyks'
+UNION ALL
+SELECT '69682407', 'jrtamarathon'
+UNION ALL
+SELECT '87671094', 'speedstuff4charity'
+UNION ALL
+SELECT 'UCuQJYIuK2n_QMzzSeetrqFg', 'Speed Stuff 4 Charity'
+UNION ALL
+SELECT '127836772', 'powerupwithpride'
+UNION ALL
+SELECT 'UCetbLnxj8DW8pbU5lSrHMgw', 'Power Up With Pride'
+UNION ALL
+SELECT '132289787', 'theraceagainsttime'
+UNION ALL
+SELECT '157854348', 'bigbadgameathon'
+UNION ALL
+SELECT 'UC0bAmkzWnvGA2Ia514YzcSA', 'Big Bad Game-a-thon'
+UNION ALL
+SELECT '119481642', 'reallyreallylongathon'
+UNION ALL
+SELECT 'UCDfCg4AMach4zc8jzklLQog', 'reallyreally longathon'
+UNION ALL
+SELECT '137422507', 'lefrenchrestream'
+UNION ALL
+SELECT 'UC1ryU4mxIyPLc4ZwEbAHt1Q', 'Bourg La Run';
+
+
+
+
+
 
 
 

@@ -135,8 +135,8 @@ BEGIN
 	  	JOIN OldVideoIDs rn1 ON rn1.RowNum = rn.RowNum
 	  	SET rn.OldVideoID = rn1.OldVideoID;	
 	
-        INSERT INTO tbl_SpeedRun_Video_Detail_Full_Ordered (SpeedRunVideoID, SpeedRunID, ChannelID, ViewCount)
-		SELECT dn.NewVideoID, dn.NewID, rv.ChannelID, rv.ViewCount
+        INSERT INTO tbl_SpeedRun_Video_Detail_Full_Ordered (SpeedRunVideoID, SpeedRunID, ChannelCode, ViewCount)
+		SELECT dn.NewVideoID, dn.NewID, rv.ChannelCode, rv.ViewCount
 		FROM InsertedVideoIDs dn
 		JOIN tbl_SpeedRun_Video_Detail_Full rv ON rv.SpeedRunVideoID = dn.OldVideoID;
 

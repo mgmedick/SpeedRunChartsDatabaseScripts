@@ -128,19 +128,20 @@ BEGIN
           AND MaxViewCount.VideoCount = 1
           ORDER BY rn.ID DESC
           LIMIT TopAmount;           
-	 -- GDQ
+	 -- Events
      ELSEIF SpeedRunListCategoryID = 7 THEN
           SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
                rn.GameCoverImageUrl, 
                -- NULL AS GameCoverImageUrl,               
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
 			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate             
-          FROM vw_SpeedRunSummary rn                
+          FROM vw_SpeedRunSummary rn
+          JOIN tbl_SpeedRun_Video_Detail rn1 ON rn1.SpeedRunID = rn.ID
+          JOIN tbl_Channel ca ON ca.Code = rn1.ChannelCode    
           WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
           AND rn.EmbeddedVideoLinks IS NOT NULL
-          AND EXISTS (SELECT 1 FROM tbl_SpeedRun_Video_Detail rn1 WHERE rn1.SpeedRunID = rn.ID AND rn1.ChannelID IN ('22510310','UCI3DTtB-a3fJPjKtQ5kYHfA'))
 		  ORDER BY rn.ID DESC
-          LIMIT TopAmount;  
+          LIMIT TopAmount;   
 	 -- First
      ELSEIF SpeedRunListCategoryID = 8 THEN
           SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
