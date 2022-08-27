@@ -23,13 +23,18 @@ CREATE VIEW vw_SpeedRunSummary AS
            rn.PrimaryTime,
            rn.DateSubmitted,
 		   rn.VerifyDate,
-           rn.ImportedDate
+           CASE WHEN rn.ImportedDate > ImportLastBulkReloadDate.Value THEN rn.ImportedDate ELSE COALESCE(VerifyDate, DateSubmitted) END AS ImportedDate
     FROM tbl_SpeedRun rn
     JOIN tbl_SpeedRun_SpeedRunComID rn1 ON rn1.SpeedRunID = rn.ID
     JOIN tbl_Game g ON g.ID = rn.GameID
 	JOIN tbl_Game_Link gl ON gl.GameID = g.ID
     JOIN tbl_Category c ON c.ID = rn.CategoryID
     JOIN tbl_CategoryType ct ON ct.ID = c.CategoryTypeID
+    JOIN LATERAL (
+		SELECT COALESCE(dn.Dte, '1753-01-01 00:00:00') Value
+        FROM tbl_Setting dn
+        WHERE dn.Name = 'ImportLastBulkReloadDate'
+    ) ImportLastBulkReloadDate ON TRUE    
     LEFT JOIN tbl_Level l ON l.ID = rn.LevelID
   	LEFT JOIN LATERAL (
 		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) ORDER BY rv.ID SEPARATOR ',') Value
@@ -57,3 +62,5 @@ CREATE VIEW vw_SpeedRunSummary AS
 	    WHERE rd.SpeedRunID = rn.ID
 	    AND rd.EmbeddedVideoLinkUrl IS NOT NULL
 	) EmbeddedVideoLinks ON TRUE;
+	
+
