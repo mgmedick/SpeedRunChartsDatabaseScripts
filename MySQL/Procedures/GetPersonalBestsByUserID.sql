@@ -2,7 +2,7 @@
 DROP PROCEDURE IF EXISTS GetPersonalBestsByUserID;
 
 DELIMITER $$
-CREATE PROCEDURE GetPersonalBestsByUserID(
+CREATE DEFINER=`root`@`localhost` PROCEDURE GetPersonalBestsByUserID(
 	IN GameID INT,
 	IN CategoryID INT,
 	IN LevelID INT,

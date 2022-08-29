@@ -477,6 +477,7 @@ CREATE TABLE tbl_SpeedRun
 -- ALTER TABLE tbl_SpeedRun ADD CONSTRAINT FK_tbl_SpeedRun_tbl_Category FOREIGN KEY (CategoryID) REFERENCES tbl_Category (ID);
 -- ALTER TABLE tbl_SpeedRun_Guest ADD CONSTRAINT FK_tbl_SpeedRun_tbl_Category FOREIGN KEY (CategoryID) REFERENCES tbl_Category (ID);
 CREATE INDEX IDX_tbl_SpeedRun_GameID_CategoryID_LevelID_Rank_PlusInclude ON tbl_SpeedRun (GameID,CategoryID,LevelID,`Rank`,PrimaryTime,DateSubmitted,VerifyDate);
+CREATE INDEX IDX_tbl_SpeedRun_VerifyDate_ImportedDate_Rank ON tbl_SpeedRun (VerifyDate, ImportedDate, `Rank`);
 
 -- tbl_SpeedRun_SpeedRunComID
 DROP TABLE IF EXISTS tbl_SpeedRun_SpeedRunComID;
@@ -677,7 +678,7 @@ CREATE TABLE tbl_Channel
 -- vw_Game
 DROP VIEW IF EXISTS vw_Game;
 
-CREATE VIEW vw_Game AS
+CREATE DEFINER=`root`@`localhost` VIEW vw_Game AS
 
     SELECT g.ID, g.Name, g.Abbr, gl.CoverImagePath AS CoverImageUrl, g.YearOfRelease, CategoryTypes.Value AS CategoryTypes, Categories.Value AS Categories, Levels.Value AS Levels,
         Variables.Value AS Variables, VariableValues.Value AS VariableValues, Platforms.Value AS Platforms, Moderators.Value AS Moderators, gl.SpeedRunComUrl             
@@ -727,7 +728,7 @@ CREATE VIEW vw_Game AS
  -- vw_GameSpeedRunCom
  DROP VIEW IF EXISTS vw_GameSpeedRunCom;
 
-CREATE VIEW vw_GameSpeedRunCom AS
+CREATE DEFINER=`root`@`localhost` VIEW vw_GameSpeedRunCom AS
 	
 	SELECT g.ID,
 	       gc.SpeedRunComID,  
@@ -789,7 +790,7 @@ CREATE VIEW vw_GameSpeedRunCom AS
 -- vw_SpeedRun
 DROP VIEW IF EXISTS vw_SpeedRun;
 
-CREATE VIEW vw_SpeedRun AS
+CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRun AS
 
     SELECT rn.ID,
            g.ID AS GameID,
@@ -866,7 +867,7 @@ CREATE VIEW vw_SpeedRun AS
 -- vw_SpeedRunGrid
 DROP VIEW IF EXISTS vw_SpeedRunGrid;
 
-CREATE VIEW vw_SpeedRunGrid AS
+CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGrid AS
 
     SELECT rn.ID,
            rn.GameID,
@@ -914,7 +915,7 @@ CREATE VIEW vw_SpeedRunGrid AS
 -- vw_SpeedRunGrid
 DROP VIEW IF EXISTS vw_SpeedRunGridTab;
 
-CREATE VIEW vw_SpeedRunGridTab AS
+CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGridTab AS
 
     SELECT rn.ID,
            rn.GameID,
@@ -932,7 +933,7 @@ CREATE VIEW vw_SpeedRunGridTab AS
 -- vw_SpeedRunGridTabUser
 DROP VIEW IF EXISTS vw_SpeedRunGridTabUser;
 
-CREATE VIEW vw_SpeedRunGridTabUser AS
+CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGridTabUser AS
 
     SELECT rn.ID,
            rn.GameID,
@@ -947,7 +948,7 @@ CREATE VIEW vw_SpeedRunGridTabUser AS
 -- vw_SpeedRunGridUser
 DROP VIEW IF EXISTS vw_SpeedRunGridUser;
 
-CREATE VIEW vw_SpeedRunGridUser AS
+CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGridUser AS
 
 	SELECT rn.ID,
            rn.GameID,
@@ -992,12 +993,12 @@ CREATE VIEW vw_SpeedRunGridUser AS
 	    FROM tbl_SpeedRun_Guest rg
 		JOIN tbl_Guest g ON g.ID = rg.GuestID
 		WHERE rg.SpeedRunID = rn.ID
-	) Guests ON TRUE;            
+	) Guests ON TRUE;
 
 -- vw_SpeedRunSummary
 DROP VIEW IF EXISTS vw_SpeedRunSummary;
 
-CREATE VIEW vw_SpeedRunSummary AS
+CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunSummary AS
 
     SELECT rn.ID,
     	   rn1.SpeedRunComID,
@@ -1019,18 +1020,13 @@ CREATE VIEW vw_SpeedRunSummary AS
            rn.PrimaryTime,
            rn.DateSubmitted,
 		   rn.VerifyDate,
-           CASE WHEN rn.ImportedDate > ImportLastBulkReloadDate.Value THEN rn.ImportedDate ELSE COALESCE(VerifyDate, DateSubmitted) END AS ImportedDate
+           rn.ImportedDate
     FROM tbl_SpeedRun rn
     JOIN tbl_SpeedRun_SpeedRunComID rn1 ON rn1.SpeedRunID = rn.ID
     JOIN tbl_Game g ON g.ID = rn.GameID
 	JOIN tbl_Game_Link gl ON gl.GameID = g.ID
     JOIN tbl_Category c ON c.ID = rn.CategoryID
-    JOIN tbl_CategoryType ct ON ct.ID = c.CategoryTypeID
-    JOIN LATERAL (
-		SELECT COALESCE(dn.Dte, '1753-01-01 00:00:00') Value
-        FROM tbl_Setting dn
-        WHERE dn.Name = 'ImportLastBulkReloadDate'
-    ) ImportLastBulkReloadDate ON TRUE    
+    JOIN tbl_CategoryType ct ON ct.ID = c.CategoryTypeID 
     LEFT JOIN tbl_Level l ON l.ID = rn.LevelID
   	LEFT JOIN LATERAL (
 		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) ORDER BY rv.ID SEPARATOR ',') Value
@@ -1062,7 +1058,7 @@ CREATE VIEW vw_SpeedRunSummary AS
 -- vw_SpeedRunSummaryLite
 DROP VIEW IF EXISTS vw_SpeedRunSummaryLite;
 
-CREATE VIEW vw_SpeedRunSummaryLite AS
+CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunSummaryLite AS
 
     SELECT rn.ID,
            rn.GameID,
@@ -1090,7 +1086,7 @@ CREATE VIEW vw_SpeedRunSummaryLite AS
 -- vw_User
 DROP VIEW IF EXISTS vw_User;
 
-CREATE VIEW vw_User AS
+CREATE DEFINER=`root`@`localhost` VIEW vw_User AS
 
 	SELECT u.ID, u.Name, u.Abbr, u.SignUpDate, uc.Location,
 	ul.SpeedRunComUrl, ul.ProfileImageUrl, ul.TwitchProfileUrl, ul.HitboxProfileUrl, ul.YoutubeProfileUrl, ul.TwitterProfileUrl, ul.SpeedRunsLiveProfileUrl,
@@ -1131,7 +1127,7 @@ CREATE VIEW vw_User AS
 -- vw_UserAccount
 DROP VIEW IF EXISTS vw_UserAccount;
 
-CREATE VIEW vw_UserAccount AS
+CREATE DEFINER=`root`@`localhost` VIEW vw_UserAccount AS
 
     SELECT ua.ID AS UserAccountID,
 	ua.Username,
@@ -1154,7 +1150,7 @@ CREATE VIEW vw_UserAccount AS
 -- vw_UserSpeedRunCom
 DROP VIEW IF EXISTS vw_UserSpeedRunCom;
 
-CREATE VIEW vw_UserSpeedRunCom AS
+CREATE DEFINER=`root`@`localhost` VIEW vw_UserSpeedRunCom AS
 
     SELECT u.ID,
            uc.SpeedRunComID,  
@@ -1179,7 +1175,7 @@ CREATE VIEW vw_UserSpeedRunCom AS
 DROP PROCEDURE IF EXISTS GetGamesByUserID;
 
 DELIMITER &&
-CREATE PROCEDURE GetGamesByUserID
+CREATE DEFINER=`root`@`localhost` PROCEDURE GetGamesByUserID
 (
 	IN UserID VARCHAR(20)
 )
@@ -1261,31 +1257,39 @@ DELIMITER ;
 DROP PROCEDURE IF EXISTS GetLatestSpeedRuns;
 
 DELIMITER $$
-CREATE PROCEDURE GetLatestSpeedRuns
+CREATE DEFINER=`root`@`localhost` PROCEDURE GetLatestSpeedRuns
 (
 	IN SpeedRunListCategoryID INT,
 	IN TopAmount INT,
 	IN OrderValueOffset INT
 )
 BEGIN
+    DECLARE ImportLastBulkReloadDate DATETIME;
+
+    SELECT COALESCE(ts.Dte, '1753-01-01 00:00:00') INTO ImportLastBulkReloadDate
+    FROM tbl_setting ts
+    WHERE ts.Name = 'ImportLastBulkReloadDate';
+
      -- New
      IF SpeedRunListCategoryID = 0 THEN
           SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
                rn.GameCoverImageUrl, 
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
-			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate             
+			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, 
+			   CASE WHEN rn.ImportedDate > ImportLastBulkReloadDate THEN rn.ImportedDate ELSE COALESCE(VerifyDate, DateSubmitted) END AS ImportedDate
           FROM vw_SpeedRunSummary rn
           WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
+		  AND ((rn.ImportedDate < ImportLastBulkReloadDate) OR (rn.VerifyDate >= DATE_ADD(rn.ImportedDate, INTERVAL -1 DAY)))        
           AND rn.EmbeddedVideoLinks IS NOT NULL
           ORDER BY rn.ID DESC
           LIMIT TopAmount;
 	 -- Top 5%
      ELSEIF SpeedRunListCategoryID = 1 THEN
           SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
-               rn.GameCoverImageUrl, 
-               -- NULL AS GameCoverImageUrl,
+               rn.GameCoverImageUrl,
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
-			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate              
+			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, 
+			   CASE WHEN rn.ImportedDate > ImportLastBulkReloadDate THEN rn.ImportedDate ELSE COALESCE(VerifyDate, DateSubmitted) END AS ImportedDate
 		  FROM vw_SpeedRunSummary rn,        
 		  LATERAL (SELECT FLOOR(5 / 100 * (MAX(rn1.`Rank`) + 1)) AS Value
 					FROM vw_SpeedRunSummaryLite rn1
@@ -1297,6 +1301,7 @@ BEGIN
 					HAVING MAX(rn1.`Rank`) > 1
 				) AS MaxRankPercent
 		  WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
+		  AND ((rn.ImportedDate < ImportLastBulkReloadDate) OR (rn.VerifyDate >= DATE_ADD(rn.ImportedDate, INTERVAL -1 DAY)))   
 		  AND rn.EmbeddedVideoLinks IS NOT NULL
 		  AND rn.`Rank` IS NOT NULL	  
 		  AND rn.`Rank` <= CASE WHEN MaxRankPercent.Value < 1 THEN 1 ELSE MaxRankPercent.Value END
@@ -1305,10 +1310,10 @@ BEGIN
 	 -- World Records
      ELSEIF SpeedRunListCategoryID = 2 THEN
           SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
-               rn.GameCoverImageUrl, 
-               -- NULL AS GameCoverImageUrl,               
+               rn.GameCoverImageUrl,                
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
-			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate             
+			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, 
+			   CASE WHEN rn.ImportedDate > ImportLastBulkReloadDate THEN rn.ImportedDate ELSE COALESCE(VerifyDate, DateSubmitted) END AS ImportedDate
           FROM vw_SpeedRunSummary rn,
 		  LATERAL (SELECT MAX(rn1.`Rank`) AS Value
 					FROM vw_SpeedRunSummaryLite rn1
@@ -1319,6 +1324,7 @@ BEGIN
 					AND rn1.`Rank` IS NOT NULL
 				) AS MaxRank          
           WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
+		  AND ((rn.ImportedDate < ImportLastBulkReloadDate) OR (rn.VerifyDate >= DATE_ADD(rn.ImportedDate, INTERVAL -1 DAY)))             
           AND rn.EmbeddedVideoLinks IS NOT NULL
 		  AND rn.`Rank` = 1
 		  AND MaxRank.Value > 1
@@ -1327,10 +1333,10 @@ BEGIN
 	 -- Top 3
      ELSEIF SpeedRunListCategoryID = 3 THEN
           SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
-               rn.GameCoverImageUrl, 
-               -- NULL AS GameCoverImageUrl,               
+               rn.GameCoverImageUrl,              
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
-			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate             
+			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, 
+			   CASE WHEN rn.ImportedDate > ImportLastBulkReloadDate THEN rn.ImportedDate ELSE COALESCE(VerifyDate, DateSubmitted) END AS ImportedDate
           FROM vw_SpeedRunSummary rn,
 		  LATERAL (SELECT MAX(rn1.`Rank`) AS Value
 					FROM vw_SpeedRunSummaryLite rn1
@@ -1341,6 +1347,7 @@ BEGIN
 					AND rn1.`Rank` IS NOT NULL
 				) AS MaxRank             
           WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
+		  AND ((rn.ImportedDate < ImportLastBulkReloadDate) OR (rn.VerifyDate >= DATE_ADD(rn.ImportedDate, INTERVAL -1 DAY)))             
           AND rn.EmbeddedVideoLinks IS NOT NULL
 		  AND rn.`Rank` <= 3
 		  AND MaxRank.Value > 3
@@ -1349,10 +1356,10 @@ BEGIN
 	 -- Person Bests
      ELSEIF SpeedRunListCategoryID = 4 THEN
 		  SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
-		  rn.GameCoverImageUrl, 
-		  -- NULL AS GameCoverImageUrl,          
+		  rn.GameCoverImageUrl,           
 		  rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
-		  rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate           
+		  rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, 
+	      CASE WHEN rn.ImportedDate > ImportLastBulkReloadDate THEN rn.ImportedDate ELSE COALESCE(VerifyDate, DateSubmitted) END AS ImportedDate
 		  FROM vw_SpeedRunSummary rn,
 		  LATERAL (SELECT rn1.ID AS Value
 					FROM vw_SpeedRunSummaryLite rn1
@@ -1364,6 +1371,7 @@ BEGIN
 					LIMIT 1
 				) AS OtherRun		  
 		  WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
+		  AND ((rn.ImportedDate < ImportLastBulkReloadDate) OR (rn.VerifyDate >= DATE_ADD(rn.ImportedDate, INTERVAL -1 DAY)))    		  
 		  AND rn.EmbeddedVideoLinks IS NOT NULL
 		  AND rn.`Rank` IS NOT NULL
 		  AND OtherRun.Value IS NOT NULL
@@ -1372,42 +1380,43 @@ BEGIN
 	 -- Popular
      ELSEIF SpeedRunListCategoryID = 5 THEN
           SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
-               rn.GameCoverImageUrl, 
-               -- NULL AS GameCoverImageUrl,               
+               rn.GameCoverImageUrl,               
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
-			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate             
+			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, 
+			   CASE WHEN rn.ImportedDate > ImportLastBulkReloadDate THEN rn.ImportedDate ELSE COALESCE(VerifyDate, DateSubmitted) END AS ImportedDate
           FROM vw_SpeedRunSummary rn,
 		  LATERAL (SELECT MAX(rn1.ViewCount) AS Value, COUNT(rn1.SpeedRunVideoID) AS VideoCount
 					FROM tbl_SpeedRun_Video_Detail rn1
 					WHERE rn1.SpeedRunID = rn.ID
 			    ) AS MaxViewCount          
           WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
-          AND rn.EmbeddedVideoLinks IS NOT NULL
-          AND MaxViewCount.Value > 1000
+		  AND ((rn.ImportedDate < ImportLastBulkReloadDate) OR (rn.VerifyDate >= DATE_ADD(rn.ImportedDate, INTERVAL -1 DAY)))            
+          AND rn.EmbeddedVideoLinks IS NOT NULL         
+          AND MaxViewCount.Value >= 500
           AND MaxViewCount.VideoCount = 1
           ORDER BY rn.ID DESC
           LIMIT TopAmount;           
 	 -- Events
      ELSEIF SpeedRunListCategoryID = 7 THEN
           SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
-               rn.GameCoverImageUrl, 
-               -- NULL AS GameCoverImageUrl,               
+               rn.GameCoverImageUrl,              
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
-			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate             
+			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, 
+			   CASE WHEN rn.ImportedDate > ImportLastBulkReloadDate THEN rn.ImportedDate ELSE COALESCE(VerifyDate, DateSubmitted) END AS ImportedDate
           FROM vw_SpeedRunSummary rn
-          JOIN tbl_SpeedRun_Video_Detail rn1 ON rn1.SpeedRunID = rn.ID
-          JOIN tbl_Channel ca ON ca.Code = rn1.ChannelCode    
           WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
+		  AND ((rn.ImportedDate < ImportLastBulkReloadDate) OR (rn.VerifyDate >= DATE_ADD(rn.ImportedDate, INTERVAL -1 DAY)))             
           AND rn.EmbeddedVideoLinks IS NOT NULL
+          AND EXISTS (SELECT 1 FROM tbl_SpeedRun_Video_Detail rn1 JOIN tbl_Channel ca ON ca.Code = rn1.ChannelCode WHERE rn1.SpeedRunID = rn.ID)
 		  ORDER BY rn.ID DESC
-          LIMIT TopAmount;   
+          LIMIT TopAmount;  
 	 -- First
      ELSEIF SpeedRunListCategoryID = 8 THEN
           SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
-               rn.GameCoverImageUrl, 
-               -- NULL AS GameCoverImageUrl,               
+               rn.GameCoverImageUrl,             
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
-			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate             
+			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, 
+			   CASE WHEN rn.ImportedDate > ImportLastBulkReloadDate THEN rn.ImportedDate ELSE COALESCE(VerifyDate, DateSubmitted) END AS ImportedDate
           FROM vw_SpeedRunSummary rn,
 		  LATERAL (SELECT MAX(rn1.`Rank`) AS Value
 					FROM vw_SpeedRunSummaryLite rn1
@@ -1418,6 +1427,7 @@ BEGIN
 					AND rn1.`Rank` IS NOT NULL
 				) AS MaxRank          
           WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
+		  AND ((rn.ImportedDate < ImportLastBulkReloadDate) OR (rn.VerifyDate >= DATE_ADD(rn.ImportedDate, INTERVAL -1 DAY)))              
           AND rn.EmbeddedVideoLinks IS NOT NULL
 		  AND rn.`Rank` = 1
 		  AND rn.`Rank` = MaxRank.Value
@@ -1426,23 +1436,25 @@ BEGIN
 	 -- Trending
      ELSEIF SpeedRunListCategoryID = 9 THEN
           SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
-               rn.GameCoverImageUrl, 
-               -- NULL AS GameCoverImageUrl,               
+               rn.GameCoverImageUrl,             
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
-			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate             
+			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, 
+			   CASE WHEN rn.ImportedDate > ImportLastBulkReloadDate THEN rn.ImportedDate ELSE COALESCE(VerifyDate, DateSubmitted) END AS ImportedDate             
           FROM vw_SpeedRunSummary rn,
-		  LATERAL (SELECT COUNT(*) AS Value
+		  LATERAL (SELECT COUNT(rn1.ID) AS Value
 					FROM vw_SpeedRunSummaryLite rn1
 					WHERE rn1.GameID = rn.GameID
 					AND rn1.CategoryID = rn.CategoryID
 					AND COALESCE(rn1.LevelID,'') = COALESCE(rn.LevelID,'')
 					AND COALESCE(rn1.SubCategoryVariableValueIDs,'') = COALESCE(rn.SubCategoryVariableValueIDs,'')
 					AND rn1.ID <> rn.ID
-					AND COALESCE(rn1.VerifyDate, rn1.ImportedDate) BETWEEN DATE_ADD(COALESCE(rn.VerifyDate, rn.ImportedDate), INTERVAL -5 DAY) AND COALESCE(rn.VerifyDate, rn.ImportedDate)
-				) AS ImportedDate            
+					AND rn1.VerifyDate < rn.VerifyDate
+					AND rn1.VerifyDate >= DATE_ADD(rn.VerifyDate, INTERVAL -5 DAY)
+				) AS RecentRuns            
           WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
+		  AND ((rn.ImportedDate < ImportLastBulkReloadDate) OR (rn.VerifyDate >= DATE_ADD(rn.ImportedDate, INTERVAL -1 DAY)))              
           AND rn.EmbeddedVideoLinks IS NOT NULL
-          AND ImportedDate.Value >= 10
+          AND RecentRuns.Value >= 3
           ORDER BY rn.ID DESC
           LIMIT TopAmount;         
      END IF;
@@ -1453,7 +1465,7 @@ DELIMITER ;
 DROP PROCEDURE IF EXISTS GetPersonalBestsByUserID;
 
 DELIMITER $$
-CREATE PROCEDURE GetPersonalBestsByUserID(
+CREATE DEFINER=`root`@`localhost` PROCEDURE GetPersonalBestsByUserID(
 	IN GameID INT,
 	IN CategoryID INT,
 	IN LevelID INT,
@@ -1508,7 +1520,7 @@ DELIMITER ;
 DROP PROCEDURE IF EXISTS GetSpeedRunsByUserID;
 
 DELIMITER $$
-CREATE PROCEDURE GetSpeedRunsByUserID(
+CREATE DEFINER=`root`@`localhost` PROCEDURE GetSpeedRunsByUserID(
 	IN GameID INT,
 	IN CategoryID INT,
 	IN LevelID INT,
@@ -1548,7 +1560,7 @@ DELIMITER ;
 DROP PROCEDURE IF EXISTS ImportCreateFullTables;
 
 DELIMITER $$
-CREATE PROCEDURE ImportCreateFullTables()
+CREATE DEFINER=`root`@`localhost` PROCEDURE ImportCreateFullTables()
 BEGIN
 	-- tbl_Platform_Full
 	DROP TABLE IF EXISTS tbl_Platform_Full;
@@ -2177,7 +2189,7 @@ DELIMITER ;
 DROP PROCEDURE IF EXISTS ImportGetGamesForSitemap;
 
 DELIMITER $$
-CREATE PROCEDURE ImportGetGamesForSitemap()
+CREATE DEFINER=`root`@`localhost` PROCEDURE ImportGetGamesForSitemap()
 BEGIN
 	
     SELECT ID, Abbr, COALESCE(ModifiedDate, ImportedDate) AS LastModifiedDate 
@@ -2191,7 +2203,7 @@ DELIMITER ;
 DROP PROCEDURE IF EXISTS ImportReorderSpeedRuns;
 
 DELIMITER $$
-CREATE PROCEDURE ImportReorderSpeedRuns()
+CREATE DEFINER=`root`@`localhost` PROCEDURE ImportReorderSpeedRuns()
 BEGIN	
     DECLARE BatchCount INT DEFAULT 1000;
     DECLARE RowCount INT DEFAULT 0;
@@ -2371,7 +2383,7 @@ DELIMITER ;
 DROP PROCEDURE IF EXISTS ImportRenameFullTables;
 
 DELIMITER $$
-CREATE PROCEDURE ImportRenameFullTables()
+CREATE DEFINER=`root`@`localhost` PROCEDURE ImportRenameFullTables()
 BEGIN	
 	-- Drop Tables
 	DROP TABLE tbl_Platform;
@@ -2474,6 +2486,7 @@ BEGIN
 	CREATE INDEX IDX_tbl_SpeedRun_Video_Detail_SpeedRunID ON tbl_SpeedRun_Video_Detail (SpeedRunID);
 	CREATE INDEX IDX_tbl_SpeedRun_Video_Detail_ChannelCode_SpeedRunID ON tbl_SpeedRun_Video_Detail (ChannelCode, SpeedRunID);
 	CREATE INDEX IDX_tbl_Category_CategoryTypeID ON tbl_Category (CategoryTypeID);
+	CREATE INDEX IDX_tbl_SpeedRun_VerifyDate_ImportedDate_Rank ON tbl_SpeedRun (VerifyDate, ImportedDate, `Rank`);
 	-- vw_User
 	CREATE INDEX IDX_tbl_SpeedRun_Player_UserID ON tbl_SpeedRun_Player (UserID);
 	-- tbl_speedrun_speedruncomid
@@ -2485,7 +2498,7 @@ DELIMITER ;
 DROP PROCEDURE IF EXISTS ImportUpdateSpeedRunRanks;
 
 DELIMITER $$
-CREATE PROCEDURE ImportUpdateSpeedRunRanks(
+CREATE DEFINER=`root`@`localhost` PROCEDURE ImportUpdateSpeedRunRanks(
 	IN LastImportDate DATETIME
 )
 BEGIN	
@@ -2655,7 +2668,7 @@ DELIMITER ;
 DROP PROCEDURE IF EXISTS ImportRebuildIndexes;
 
 DELIMITER $$
-CREATE PROCEDURE ImportRebuildIndexes()
+CREATE DEFINER=`root`@`localhost` PROCEDURE ImportRebuildIndexes()
 BEGIN
 	set @tables_like = null;
 	set @optimize = null;

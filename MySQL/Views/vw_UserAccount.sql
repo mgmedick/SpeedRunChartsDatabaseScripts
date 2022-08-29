@@ -1,7 +1,7 @@
 -- vw_UserAccount
 DROP VIEW IF EXISTS vw_UserAccount;
 
-CREATE VIEW vw_UserAccount AS
+CREATE DEFINER=`root`@`localhost` VIEW vw_UserAccount AS
 
     SELECT ua.ID AS UserAccountID,
 	ua.Username,

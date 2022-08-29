@@ -1,7 +1,7 @@
 -- vw_SpeedRunSummary
 DROP VIEW IF EXISTS vw_SpeedRunSummary;
 
-CREATE VIEW vw_SpeedRunSummary AS
+CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunSummary AS
 
     SELECT rn.ID,
     	   rn1.SpeedRunComID,

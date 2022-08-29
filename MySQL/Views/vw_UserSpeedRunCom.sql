@@ -1,7 +1,7 @@
 -- vw_UserSpeedRunCom
 DROP VIEW IF EXISTS vw_UserSpeedRunCom;
 
-CREATE VIEW vw_UserSpeedRunCom AS
+CREATE DEFINER=`root`@`localhost` VIEW vw_UserSpeedRunCom AS
 
     SELECT u.ID,
            uc.SpeedRunComID,  

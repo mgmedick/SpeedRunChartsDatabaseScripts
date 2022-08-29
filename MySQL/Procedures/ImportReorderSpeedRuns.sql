@@ -2,7 +2,7 @@
 DROP PROCEDURE IF EXISTS ImportReorderSpeedRuns;
 
 DELIMITER $$
-CREATE PROCEDURE ImportReorderSpeedRuns()
+CREATE DEFINER=`root`@`localhost` PROCEDURE ImportReorderSpeedRuns()
 BEGIN	
     DECLARE BatchCount INT DEFAULT 1000;
     DECLARE RowCount INT DEFAULT 0;

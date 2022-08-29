@@ -2,7 +2,7 @@
 DROP PROCEDURE IF EXISTS ImportUpdateSpeedRunRanks;
 
 DELIMITER $$
-CREATE PROCEDURE ImportUpdateSpeedRunRanks(
+CREATE DEFINER=`root`@`localhost` PROCEDURE ImportUpdateSpeedRunRanks(
 	IN LastImportDate DATETIME
 )
 BEGIN	

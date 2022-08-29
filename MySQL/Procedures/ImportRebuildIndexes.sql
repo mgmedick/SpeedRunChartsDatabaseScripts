@@ -2,7 +2,7 @@
 DROP PROCEDURE IF EXISTS ImportRebuildIndexes;
 
 DELIMITER $$
-CREATE PROCEDURE ImportRebuildIndexes()
+CREATE DEFINER=`root`@`localhost` PROCEDURE ImportRebuildIndexes()
 BEGIN
 	set @tables_like = null;
 	set @optimize = null;

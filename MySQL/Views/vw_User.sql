@@ -1,7 +1,7 @@
 -- vw_User
 DROP VIEW IF EXISTS vw_User;
 
-CREATE VIEW vw_User AS
+CREATE DEFINER=`root`@`localhost` VIEW vw_User AS
 
 	SELECT u.ID, u.Name, u.Abbr, u.SignUpDate, uc.Location,
 	ul.SpeedRunComUrl, ul.ProfileImageUrl, ul.TwitchProfileUrl, ul.HitboxProfileUrl, ul.YoutubeProfileUrl, ul.TwitterProfileUrl, ul.SpeedRunsLiveProfileUrl,

@@ -2,7 +2,7 @@
 DROP PROCEDURE IF EXISTS ImportCreateFullTables;
 
 DELIMITER $$
-CREATE PROCEDURE ImportCreateFullTables()
+CREATE DEFINER=`root`@`localhost` PROCEDURE ImportCreateFullTables()
 BEGIN
 	-- tbl_Platform_Full
 	DROP TABLE IF EXISTS tbl_Platform_Full;

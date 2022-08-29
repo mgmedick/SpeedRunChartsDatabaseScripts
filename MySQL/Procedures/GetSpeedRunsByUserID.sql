@@ -2,7 +2,7 @@
 DROP PROCEDURE IF EXISTS GetSpeedRunsByUserID;
 
 DELIMITER $$
-CREATE PROCEDURE GetSpeedRunsByUserID(
+CREATE DEFINER=`root`@`localhost` PROCEDURE GetSpeedRunsByUserID(
 	IN GameID INT,
 	IN CategoryID INT,
 	IN LevelID INT,

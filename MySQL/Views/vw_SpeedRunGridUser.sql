@@ -1,7 +1,7 @@
 -- vw_SpeedRunGridUser
 DROP VIEW IF EXISTS vw_SpeedRunGridUser;
 
-CREATE VIEW vw_SpeedRunGridUser AS
+CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGridUser AS
 
 	SELECT rn.ID,
            rn.GameID,

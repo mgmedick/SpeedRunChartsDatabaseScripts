@@ -2,7 +2,7 @@
 DROP PROCEDURE IF EXISTS ImportGetGamesForSitemap;
 
 DELIMITER $$
-CREATE PROCEDURE ImportGetGamesForSitemap()
+CREATE DEFINER=`root`@`localhost` PROCEDURE ImportGetGamesForSitemap()
 BEGIN
 	
     SELECT ID, Abbr, COALESCE(ModifiedDate, ImportedDate) AS LastModifiedDate 
