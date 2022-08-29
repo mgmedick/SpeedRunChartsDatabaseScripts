@@ -54,8 +54,8 @@ BEGIN
 	    ORDER BY COALESCE(VerifyDate, DateSubmitted)
 	    LIMIT BatchCount;  
     
-        INSERT INTO tbl_SpeedRun_Full_Ordered (StatusTypeID, GameID, CategoryID, LevelID, `Rank`, PrimaryTime, RunDate, DateSubmitted, VerifyDate)
-        SELECT StatusTypeID, GameID, CategoryID, LevelID, `Rank`, PrimaryTime, RunDate, DateSubmitted, VerifyDate
+        INSERT INTO tbl_SpeedRun_Full_Ordered (StatusTypeID, GameID, CategoryID, LevelID, `Rank`, PrimaryTime, IsExcludeFromSpeedRunList, RunDate, DateSubmitted, VerifyDate)
+        SELECT StatusTypeID, GameID, CategoryID, LevelID, `Rank`, PrimaryTime, IsExcludeFromSpeedRunList, RunDate, DateSubmitted, VerifyDate
         FROM tbl_SpeedRun_Full rn
         JOIN IDsToProcess rn1 ON rn1.ID = rn.ID;
               
