@@ -125,7 +125,7 @@ BEGIN
           WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
 		  AND rn.IsExcludeFromSpeedRunList = 0           
           AND rn.EmbeddedVideoLinks IS NOT NULL         
-          AND MaxViewCount.Value >= 500
+          AND MaxViewCount.Value >= 100
           AND MaxViewCount.VideoCount = 1
           ORDER BY rn.ID DESC
           LIMIT TopAmount;           
@@ -190,3 +190,6 @@ BEGIN
      END IF;
 END $$
 DELIMITER ;
+
+
+

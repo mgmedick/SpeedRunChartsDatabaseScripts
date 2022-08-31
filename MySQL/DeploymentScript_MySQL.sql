@@ -477,7 +477,7 @@ CREATE TABLE tbl_SpeedRun
 -- ALTER TABLE tbl_SpeedRun ADD CONSTRAINT FK_tbl_SpeedRun_tbl_Level FOREIGN KEY (LevelID) REFERENCES tbl_Level (ID);
 -- ALTER TABLE tbl_SpeedRun ADD CONSTRAINT FK_tbl_SpeedRun_tbl_Category FOREIGN KEY (CategoryID) REFERENCES tbl_Category (ID);
 -- ALTER TABLE tbl_SpeedRun_Guest ADD CONSTRAINT FK_tbl_SpeedRun_tbl_Category FOREIGN KEY (CategoryID) REFERENCES tbl_Category (ID);
-CREATE INDEX IDX_tbl_SpeedRun_GameID_CategoryID_LevelID_Rank_PlusInclude ON tbl_SpeedRun (GameID,CategoryID,LevelID,`Rank`,PrimaryTime,DateSubmitted,VerifyDate);
+CREATE INDEX IDX_tbl_SpeedRun_GameID_CategoryID_LevelID_Rank_VerifyDate ON tbl_SpeedRun (GameID, CategoryID, LevelID, `Rank`, VerifyDate);
 CREATE INDEX IDX_tbl_SpeedRun_IsExcludeFromSpeedRunList_Rank ON tbl_SpeedRun (IsExcludeFromSpeedRunList, `Rank`);
 
 -- tbl_SpeedRun_SpeedRunComID
@@ -1382,7 +1382,7 @@ BEGIN
           WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
 		  AND rn.IsExcludeFromSpeedRunList = 0           
           AND rn.EmbeddedVideoLinks IS NOT NULL         
-          AND MaxViewCount.Value >= 500
+          AND MaxViewCount.Value >= 100
           AND MaxViewCount.VideoCount = 1
           ORDER BY rn.ID DESC
           LIMIT TopAmount;           
@@ -2464,7 +2464,7 @@ BEGIN
 	CREATE INDEX IDX_tbl_Game_Platform_GameID_PlatformID ON tbl_Game_Platform (GameID, PlatformID);
 	CREATE INDEX IDX_tbl_Game_Moderator_GameID_UserID ON tbl_Game_Moderator (GameID, UserID);
 	-- vw_SpeedRunGrid
-	CREATE INDEX IDX_tbl_SpeedRun_GameID_CategoryID_LevelID_Rank_PlusInclude ON tbl_SpeedRun (GameID, CategoryID, LevelID, `Rank`);
+	CREATE INDEX IDX_tbl_SpeedRun_GameID_CategoryID_LevelID_Rank_VerifyDate ON tbl_SpeedRun (GameID, CategoryID, LevelID, `Rank`, VerifyDate);
 	CREATE INDEX IDX_tbl_SpeedRun_VariableValue_SpeedRunID_VariableValueID ON tbl_SpeedRun_VariableValue (SpeedRunID, VariableValueID, VariableID);
 	CREATE INDEX IDX_tbl_SpeedRun_VariableValue_SpeedRunID_VariableID ON tbl_SpeedRun_VariableValue (SpeedRunID, VariableID, VariableValueID);
 	CREATE INDEX IDX_tbl_Variable_IsSubCategory ON tbl_Variable (IsSubCategory);
