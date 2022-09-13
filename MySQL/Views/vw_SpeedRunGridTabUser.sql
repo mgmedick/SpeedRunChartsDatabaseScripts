@@ -7,7 +7,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGridTabUser AS
            rn.GameID,
            rn.CategoryID,
            rn.LevelID,
-           rn.VariableValues,
+           rn.SubCategoryVariableValueIDs,
            rp.UserID,
            rn.`Rank`
     FROM vw_SpeedRunGridTab rn

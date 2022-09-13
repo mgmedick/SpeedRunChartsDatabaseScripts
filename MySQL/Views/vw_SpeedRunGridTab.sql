@@ -7,11 +7,12 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGridTab AS
            rn.GameID,
            rn.CategoryID,
            rn.LevelID,
-           VariableValues.Value AS VariableValues,
+           SubCategoryVariableValueIDs.Value AS SubCategoryVariableValueIDs,
            rn.`Rank`
     FROM tbl_SpeedRun rn
 	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONCAT(CONVERT(rv.VariableID,CHAR), '|', CONVERT(rv.VariableValueID,CHAR)) ORDER BY rv.ID SEPARATOR ',') Value
-	    FROM tbl_SpeedRun_VariableValue rv
-	    WHERE rv.SpeedRunID = rn.ID   
-	) VariableValues ON TRUE;
+		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) SEPARATOR ',') Value
+        FROM tbl_SpeedRun_VariableValue rv
+        JOIN tbl_Variable v ON v.ID=rv.VariableID AND v.IsSubCategory = 1
+        WHERE rv.SpeedRunID = rn.ID     
+	) SubCategoryVariableValueIDs ON TRUE;
