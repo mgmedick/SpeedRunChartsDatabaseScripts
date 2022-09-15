@@ -17,20 +17,24 @@ BEGIN
 	(
 		GameID INT,
 		CategoryID INT,
-		LevelID INT,
-		SubCategoryVariableValues VARCHAR(50)
+		LevelID INT
 	);
-	CREATE INDEX IDX_LeaderboardKeysFromRuns_GameID_CategoryID ON LeaderboardKeysFromRuns (GameID, CategoryID, LevelID);
+	CREATE INDEX IDX_LeaderboardKeysFromRuns_GameID_CategoryID_LevelID ON LeaderboardKeysFromRuns (GameID, CategoryID, LevelID);
+
+   	DROP TEMPORARY TABLE IF EXISTS GameIDs;
+	CREATE TEMPORARY TABLE GameIDs
+	(
+		ID INT
+	);
 
    	DROP TEMPORARY TABLE IF EXISTS LeaderboardKeys;
 	CREATE TEMPORARY TABLE LeaderboardKeys
 	(
 		GameID INT,
 		CategoryID INT,
-		LevelID INT,
-		SubCategoryVariableValues VARCHAR(50)
+		LevelID INT
 	);
-	CREATE INDEX IDX_LeaderboardKeys_GameID_CategoryID ON LeaderboardKeys (GameID, CategoryID, LevelID);
+	CREATE INDEX IDX_LeaderboardKeys_GameID_CategoryID_LevelID ON LeaderboardKeys (GameID, CategoryID, LevelID);
 
    	DROP TEMPORARY TABLE IF EXISTS SpeedRunsToUpdate;
 	CREATE TEMPORARY TABLE SpeedRunsToUpdate
@@ -78,13 +82,25 @@ BEGIN
 		GROUP BY rn.GameID, rn.CategoryID, rn.LevelID;
  	END IF;
  
-	INSERT INTO LeaderboardKeys (GameID, CategoryID)
+ 	INSERT INTO GameIDs (ID)
+ 	SELECT g.ID
+ 	FROM tbl_Game g
+ 	WHERE COALESCE(g.ModifiedDate, g.ImportedDate) >= LastImportDate;
+ 
+  	INSERT INTO LeaderboardKeys (GameID, CategoryID)
 	SELECT g.ID, c.ID
-	FROM tbl_Game g
-	JOIN tbl_Category c ON c.GameID = g.ID
-	WHERE COALESCE(g.ModifiedDate, g.ImportedDate) >= LastImportDate
-    AND NOT EXISTS (SELECT 1 FROM LeaderboardKeysFromRuns WHERE GameID = g.ID AND CategoryID = c.ID)
+	FROM GameIDs g
+	JOIN tbl_Category c ON c.GameID = g.ID AND c.CategoryTypeID = 0
+	WHERE NOT EXISTS (SELECT 1 FROM LeaderboardKeysFromRuns WHERE GameID = g.ID AND CategoryID = c.ID)  
 	GROUP BY g.ID, c.ID;
+ 
+  	INSERT INTO LeaderboardKeys (GameID, CategoryID, LevelID)
+	SELECT g.ID, c.ID, l.ID
+	FROM GameIDs g
+	JOIN tbl_Category c ON c.GameID = g.ID AND c.CategoryTypeID = 1
+	JOIN tbl_Level l ON l.GameID = g.ID
+	WHERE NOT EXISTS (SELECT 1 FROM LeaderboardKeysFromRuns WHERE GameID = g.ID AND CategoryID = c.ID AND COALESCE(LevelID,'') = COALESCE(l.ID,''))
+	GROUP BY g.ID, c.ID, l.ID;
 
 	INSERT INTO LeaderboardKeys (GameID, CategoryID, LevelID)
 	SELECT rn.GameID, rn.CategoryID, rn.LevelID

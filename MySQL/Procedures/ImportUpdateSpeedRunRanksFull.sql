@@ -10,25 +10,13 @@ BEGIN
 	DECLARE MaxRowCount INT;     
     DECLARE Debug BIT DEFAULT 0;
 
-   	DROP TEMPORARY TABLE IF EXISTS LeaderboardKeysFromRuns;
-	CREATE TEMPORARY TABLE LeaderboardKeysFromRuns
-	(
-		GameID INT,
-		CategoryID INT,
-		LevelID INT,
-		SubCategoryVariableValues VARCHAR(50)
-	);
-	CREATE INDEX IDX_LeaderboardKeysFromRuns_GameID_CategoryID ON LeaderboardKeysFromRuns (GameID, CategoryID, LevelID);
-
    	DROP TEMPORARY TABLE IF EXISTS LeaderboardKeys;
 	CREATE TEMPORARY TABLE LeaderboardKeys
 	(
 		GameID INT,
-		CategoryID INT,
-		LevelID INT,
-		SubCategoryVariableValues VARCHAR(50)
+		CategoryID INT
 	);
-	CREATE INDEX IDX_LeaderboardKeys_GameID_CategoryID ON LeaderboardKeys (GameID, CategoryID, LevelID);
+	CREATE INDEX IDX_LeaderboardKeys_GameID_CategoryID ON LeaderboardKeys (GameID, CategoryID);
 
    	DROP TEMPORARY TABLE IF EXISTS SpeedRunsToUpdate;
 	CREATE TEMPORARY TABLE SpeedRunsToUpdate
@@ -96,7 +84,7 @@ BEGIN
 	    FROM tbl_SpeedRun_Guest_Full rg
 		WHERE rg.SpeedRunID = rn.ID
 	) GuestIDs ON TRUE 	                               
-    WHERE EXISTS (SELECT 1 FROM LeaderboardKeys lb WHERE lb.GameID = rn.GameID AND lb.CategoryID = rn.CategoryID AND COALESCE(lb.LevelID,'') = COALESCE(rn.LevelID,''));
+    WHERE EXISTS (SELECT 1 FROM LeaderboardKeys lb WHERE lb.GameID = rn.GameID AND lb.CategoryID = rn.CategoryID);
   
     INSERT INTO SpeedRunsRanked(ID, `Rank`)
     SELECT ID, RANK() OVER (PARTITION BY rn.GameID, rn.CategoryID, rn.LevelID, rn.SubCategoryVariableValues ORDER BY rn.PrimaryTime)
