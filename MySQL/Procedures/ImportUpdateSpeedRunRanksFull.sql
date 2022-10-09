@@ -14,7 +14,8 @@ BEGIN
 	CREATE TEMPORARY TABLE LeaderboardKeys
 	(
 		GameID INT,
-		CategoryID INT
+		CategoryID INT,
+		IsTimerAscending BIT
 	);
 	CREATE INDEX IDX_LeaderboardKeys_GameID_CategoryID ON LeaderboardKeys (GameID, CategoryID);
 
@@ -30,9 +31,11 @@ BEGIN
           PlayerIDs VARCHAR(150),
           GuestIDs VARCHAR(150),
           PrimaryTime BIGINT,
+          IsTimerAscending BIT,
           RankPriority INT,
 		  PRIMARY KEY (RowNum)          
 	);
+	CREATE INDEX IDX_SpeedRunsToUpdate_ID ON SpeedRunsToUpdate (ID);
 
    	DROP TEMPORARY TABLE IF EXISTS SpeedRunsRanked;
 	CREATE TEMPORARY TABLE SpeedRunsRanked
@@ -42,32 +45,34 @@ BEGIN
 		`Rank` INT,
 		PRIMARY KEY (RowNum)		
 	);
+	CREATE INDEX IDX_SpeedRunsRanked_ID ON SpeedRunsRanked (ID);
 
    	DROP TEMPORARY TABLE IF EXISTS SpeedRunsToUpdateBatch;
 	CREATE TEMPORARY TABLE SpeedRunsToUpdateBatch
 	(
-		ID INT
+		ID INT	
 	);
+	CREATE INDEX IDX_SpeedRunsToUpdateBatch_ID ON SpeedRunsToUpdateBatch (ID);
 
    	DROP TEMPORARY TABLE IF EXISTS SpeedRunsRankedBatch;
 	CREATE TEMPORARY TABLE SpeedRunsRankedBatch
 	(
 		ID INT,
-		`Rank` INT	
+		`Rank` INT			
 	);
+	CREATE INDEX IDX_SpeedRunsRankedBatch_ID ON SpeedRunsRankedBatch (ID);
 
-	CREATE INDEX IDX_tbl_SpeedRun_Full_GameID_CategoryID_LevelID ON tbl_SpeedRun_Full (GameID, CategoryID, LevelID);
-
-	INSERT INTO LeaderboardKeys (GameID, CategoryID)
-	SELECT g.ID, c.ID
+	INSERT INTO LeaderboardKeys (GameID, CategoryID, IsTimerAscending)
+	SELECT g.ID, c.ID, COALESCE(rn.IsTimerAscending, 0)
 	FROM tbl_Game_Full g
 	JOIN tbl_Category_Full c ON c.GameID = g.ID
 	GROUP BY g.ID, c.ID;
 
-	INSERT INTO SpeedRunsToUpdate(ID, GameID, CategoryID, LevelID, SubCategoryVariableValues, PlayerIDs, GuestIDs, PrimaryTime, RankPriority)
-    SELECT rn.ID, rn.GameID, rn.CategoryID, rn.LevelID, SubCategoryVariableValues.Value, PlayerIDs.Value, GuestIDs.Value, rn.PrimaryTime,
+	INSERT INTO SpeedRunsToUpdate(ID, GameID, CategoryID, LevelID, SubCategoryVariableValues, PlayerIDs, GuestIDs, PrimaryTime, IsTimerAscending, RankPriority)
+    SELECT rn.ID, rn.GameID, rn.CategoryID, rn.LevelID, SubCategoryVariableValues.Value, PlayerIDs.Value, GuestIDs.Value, rn.PrimaryTime, lb.IsTimerAscending,
     ROW_NUMBER() OVER (PARTITION BY rn.GameID, rn.CategoryID, rn.LevelID, SubCategoryVariableValues.Value, PlayerIDs.Value, GuestIDs.Value ORDER BY rn.PrimaryTime)
-    FROM tbl_SpeedRun_Full rn    
+    FROM tbl_SpeedRun_Full rn
+    JOIN LeaderboardKeys lb ON lb.GameID = rn.GameID AND lb.CategoryID = rn.CategoryID
   	LEFT JOIN LATERAL (
 		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) ORDER BY rv.ID SEPARATOR ',') Value
 	    FROM tbl_SpeedRun_VariableValue_Full rv
@@ -83,14 +88,21 @@ BEGIN
 		SELECT GROUP_CONCAT(CONVERT(rg.GuestID,CHAR) ORDER BY rg.ID SEPARATOR ',') Value
 	    FROM tbl_SpeedRun_Guest_Full rg
 		WHERE rg.SpeedRunID = rn.ID
-	) GuestIDs ON TRUE 	                               
-    WHERE EXISTS (SELECT 1 FROM LeaderboardKeys lb WHERE lb.GameID = rn.GameID AND lb.CategoryID = rn.CategoryID);
+	) GuestIDs ON TRUE;
   
     INSERT INTO SpeedRunsRanked(ID, `Rank`)
     SELECT ID, RANK() OVER (PARTITION BY rn.GameID, rn.CategoryID, rn.LevelID, rn.SubCategoryVariableValues ORDER BY rn.PrimaryTime)
     FROM SpeedRunsToUpdate rn
     WHERE rn.RankPriority = 1
+    AND rn.IsTimerAscending = 0
     AND COALESCE(PlayerIDs, GuestIDs) IS NOT NULL;
+   
+    INSERT INTO SpeedRunsRanked(ID, `Rank`)
+    SELECT ID, RANK() OVER (PARTITION BY rn.GameID, rn.CategoryID, rn.LevelID, rn.SubCategoryVariableValues ORDER BY rn.PrimaryTime DESC)
+    FROM SpeedRunsToUpdate rn
+    WHERE rn.RankPriority = 1
+    AND rn.IsTimerAscending = 1
+    AND COALESCE(PlayerIDs, GuestIDs) IS NOT NULL; 
    
     IF Debug = 0 THEN        
     	SELECT COUNT(*) INTO MaxRowCount FROM SpeedRunsToUpdate;      

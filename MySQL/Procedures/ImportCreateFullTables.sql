@@ -208,6 +208,8 @@ BEGIN
 	    Name varchar (100) NOT NULL,
 	    GameID int NOT NULL,
 	    CategoryTypeID int NOT NULL,
+	    IsMiscellaneous bit NOT NULL, 
+	    IsTimerAscending bit NOT NULL,  	    
 	    PRIMARY KEY (ID)     
 	);
 

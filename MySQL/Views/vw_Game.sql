@@ -16,7 +16,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_Game AS
 		GROUP BY ct.ID, ct.Name) ct1
 	) CategoryTypes ON TRUE   
     LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONCAT(CONVERT(c.ID,CHAR), '|', CONVERT(c.CategoryTypeID,CHAR), '|', c.Name) ORDER BY c.ID SEPARATOR '^^') Value
+		SELECT GROUP_CONCAT(CONCAT(CONVERT(c.ID,CHAR), '|', CONVERT(c.CategoryTypeID,CHAR), '|', CASE c.IsTimerAscending WHEN 1 THEN 'True' ELSE 'False' END, '|', c.Name) ORDER BY c.ID SEPARATOR '^^') Value
         FROM tbl_Category c
         WHERE c.GameID = g.ID
     ) Categories ON TRUE
@@ -47,4 +47,4 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_Game AS
 		JOIN tbl_Game_Moderator gm ON gm.UserID = u.ID
 		WHERE gm.GameID = g.ID
     ) Moderators ON TRUE;
-   
+    
