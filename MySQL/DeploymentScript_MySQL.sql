@@ -2560,7 +2560,12 @@ BEGIN
 
 	INSERT INTO SpeedRunsToUpdate(ID, GameID, CategoryID, LevelID, SubCategoryVariableValues, PlayerIDs, GuestIDs, PrimaryTime, IsTimerAscending, RankPriority)
     SELECT rn.ID, rn.GameID, rn.CategoryID, rn.LevelID, SubCategoryVariableValues.Value, PlayerIDs.Value, GuestIDs.Value, rn.PrimaryTime, lb.IsTimerAscending,
-    ROW_NUMBER() OVER (PARTITION BY rn.GameID, rn.CategoryID, rn.LevelID, SubCategoryVariableValues.Value, PlayerIDs.Value, GuestIDs.Value ORDER BY rn.PrimaryTime)
+    CASE lb.IsTimerAscending
+    	WHEN 1 THEN
+    	ROW_NUMBER() OVER (PARTITION BY rn.GameID, rn.CategoryID, rn.LevelID, SubCategoryVariableValues.Value, PlayerIDs.Value, GuestIDs.Value ORDER BY rn.PrimaryTime DESC)
+    	ELSE
+    	ROW_NUMBER() OVER (PARTITION BY rn.GameID, rn.CategoryID, rn.LevelID, SubCategoryVariableValues.Value, PlayerIDs.Value, GuestIDs.Value ORDER BY rn.PrimaryTime)
+	END
     FROM tbl_SpeedRun_Full rn
     JOIN LeaderboardKeys lb ON lb.GameID = rn.GameID AND lb.CategoryID = rn.CategoryID
   	LEFT JOIN LATERAL (
@@ -2581,18 +2586,16 @@ BEGIN
 	) GuestIDs ON TRUE;
   
     INSERT INTO SpeedRunsRanked(ID, `Rank`)
-    SELECT ID, RANK() OVER (PARTITION BY rn.GameID, rn.CategoryID, rn.LevelID, rn.SubCategoryVariableValues ORDER BY rn.PrimaryTime)
+    SELECT ID,
+    CASE rn.IsTimerAscending
+    	WHEN 1 THEN
+    	RANK() OVER (PARTITION BY rn.GameID, rn.CategoryID, rn.LevelID, rn.SubCategoryVariableValues ORDER BY rn.PrimaryTime DESC)
+    	ELSE
+    	RANK() OVER (PARTITION BY rn.GameID, rn.CategoryID, rn.LevelID, rn.SubCategoryVariableValues ORDER BY rn.PrimaryTime)
+	END    
     FROM SpeedRunsToUpdate rn
     WHERE rn.RankPriority = 1
-    AND rn.IsTimerAscending = 0
     AND COALESCE(PlayerIDs, GuestIDs) IS NOT NULL;
-   
-    INSERT INTO SpeedRunsRanked(ID, `Rank`)
-    SELECT ID, RANK() OVER (PARTITION BY rn.GameID, rn.CategoryID, rn.LevelID, rn.SubCategoryVariableValues ORDER BY rn.PrimaryTime DESC)
-    FROM SpeedRunsToUpdate rn
-    WHERE rn.RankPriority = 1
-    AND rn.IsTimerAscending = 1
-    AND COALESCE(PlayerIDs, GuestIDs) IS NOT NULL; 
    
     IF Debug = 0 THEN        
     	SELECT COUNT(*) INTO MaxRowCount FROM SpeedRunsToUpdate;      
@@ -2763,7 +2766,12 @@ BEGIN
 	
 	INSERT INTO SpeedRunsToUpdate(ID, GameID, CategoryID, LevelID, SubCategoryVariableValues, PlayerIDs, GuestIDs, PrimaryTime, IsTimerAscending, RankPriority)
     SELECT rn.ID, rn.GameID, rn.CategoryID, rn.LevelID, SubCategoryVariableValues.Value, PlayerIDs.Value, GuestIDs.Value, rn.PrimaryTime, lb.IsTimerAscending,
-    ROW_NUMBER() OVER (PARTITION BY rn.GameID, rn.CategoryID, rn.LevelID, SubCategoryVariableValues.Value, PlayerIDs.Value, GuestIDs.Value ORDER BY rn.PrimaryTime)
+    CASE lb.IsTimerAscending
+    	WHEN 1 THEN
+    	ROW_NUMBER() OVER (PARTITION BY rn.GameID, rn.CategoryID, rn.LevelID, SubCategoryVariableValues.Value, PlayerIDs.Value, GuestIDs.Value ORDER BY rn.PrimaryTime DESC)
+    	ELSE
+    	ROW_NUMBER() OVER (PARTITION BY rn.GameID, rn.CategoryID, rn.LevelID, SubCategoryVariableValues.Value, PlayerIDs.Value, GuestIDs.Value ORDER BY rn.PrimaryTime)
+	END
     FROM tbl_SpeedRun rn
     JOIN LeaderboardKeys lb ON lb.GameID = rn.GameID AND lb.CategoryID = rn.CategoryID AND COALESCE(lb.LevelID,'') = COALESCE(rn.LevelID,'')
   	LEFT JOIN LATERAL (
@@ -2784,18 +2792,16 @@ BEGIN
 	) GuestIDs ON TRUE;
   
     INSERT INTO SpeedRunsRanked(ID, `Rank`)
-    SELECT ID, RANK() OVER (PARTITION BY rn.GameID, rn.CategoryID, rn.LevelID, rn.SubCategoryVariableValues ORDER BY rn.PrimaryTime)
+    SELECT ID,
+    CASE rn.IsTimerAscending
+    	WHEN 1 THEN
+    	RANK() OVER (PARTITION BY rn.GameID, rn.CategoryID, rn.LevelID, rn.SubCategoryVariableValues ORDER BY rn.PrimaryTime DESC)
+    	ELSE
+    	RANK() OVER (PARTITION BY rn.GameID, rn.CategoryID, rn.LevelID, rn.SubCategoryVariableValues ORDER BY rn.PrimaryTime)
+	END
     FROM SpeedRunsToUpdate rn
-    WHERE rn.RankPriority = 1
-	AND rn.IsTimerAscending = 0    
+    WHERE rn.RankPriority = 1   
     AND COALESCE(PlayerIDs, GuestIDs) IS NOT NULL;
-   
-    INSERT INTO SpeedRunsRanked(ID, `Rank`)
-    SELECT ID, RANK() OVER (PARTITION BY rn.GameID, rn.CategoryID, rn.LevelID, rn.SubCategoryVariableValues ORDER BY rn.PrimaryTime DESC)
-    FROM SpeedRunsToUpdate rn
-    WHERE rn.RankPriority = 1
-	AND rn.IsTimerAscending = 1    
-    AND COALESCE(PlayerIDs, GuestIDs) IS NOT NULL;   
    
     IF Debug = 0 THEN        
     	SELECT COUNT(*) INTO MaxRowCount FROM SpeedRunsToUpdate;      
