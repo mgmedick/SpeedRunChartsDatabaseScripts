@@ -1053,7 +1053,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunSummary AS
 		WHERE rp.SpeedRunID = rn.ID
 	) Players ON TRUE       
   	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONCAT(rd.EmbeddedVideoLinkUrl, '|', COALESCE(rd.ThumbnailLinkUrl,''), '|', CONVERT(COALESCE(rd1.ViewCount,''),CHAR)) ORDER BY rd.ID SEPARATOR ',') Value
+		SELECT GROUP_CONCAT(CONCAT(rd.EmbeddedVideoLinkUrl, '|', COALESCE(rd.ThumbnailLinkUrl,''), '|', CONVERT(COALESCE(rd1.ViewCount,''),CHAR)) ORDER BY rd.ID SEPARATOR '^^') Value
 	    FROM tbl_SpeedRun_Video rd
 		LEFT JOIN tbl_SpeedRun_Video_Detail rd1 ON rd1.SpeedRunVideoID = rd.ID 
 	    WHERE rd.SpeedRunID = rn.ID
