@@ -1142,7 +1142,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_UserAccount AS
     FROM tbl_UserAccount ua
 	LEFT JOIN tbl_UserAccount_Setting ue ON ue.UserAccountID = ua.ID
 	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONVERT(uc.SpeedRunListCategoryID,CHAR) ORDER BY uc.UserAccountID SEPARATOR ',') Value
+		SELECT GROUP_CONCAT(CONVERT(uc.SpeedRunListCategoryID,CHAR) ORDER BY uc.UserAccountID, uc.ID SEPARATOR ',') Value
 	    FROM tbl_UserAccount_SpeedRunListCategory uc
 	    WHERE uc.UserAccountID = ua.ID   
 	) SpeedRunListCategoryIDs ON TRUE
