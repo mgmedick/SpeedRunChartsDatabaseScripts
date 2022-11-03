@@ -683,10 +683,11 @@ DROP VIEW IF EXISTS vw_Game;
 
 CREATE DEFINER=`root`@`localhost` VIEW vw_Game AS
 
-    SELECT g.ID, g.Name, g.Abbr, gl.CoverImagePath AS CoverImageUrl, g.YearOfRelease, CategoryTypes.Value AS CategoryTypes, Categories.Value AS Categories, Levels.Value AS Levels,
-        Variables.Value AS Variables, VariableValues.Value AS VariableValues, Platforms.Value AS Platforms, Moderators.Value AS Moderators, gl.SpeedRunComUrl             
+    SELECT g.ID, g.Name, g.Abbr, gl.CoverImagePath AS CoverImageUrl, g.YearOfRelease, gr.ShowMilliseconds, CategoryTypes.Value AS CategoryTypes, Categories.Value AS Categories, Levels.Value AS Levels,
+        Variables.Value AS Variables, VariableValues.Value AS VariableValues, Platforms.Value AS Platforms, Moderators.Value AS Moderators, gl.SpeedRunComUrl         
     FROM tbl_Game g
     JOIN tbl_Game_Link gl ON gl.GameID = g.ID
+    JOIN tbl_Game_Ruleset gr ON gr.GameID = g.ID
 	LEFT JOIN LATERAL (
 		SELECT GROUP_CONCAT(CONCAT(CONVERT(ct1.ID,CHAR), '|', ct1.Name) ORDER BY ct1.ID SEPARATOR '^^') Value
 		FROM (SELECT ct.ID, ct.Name
@@ -696,7 +697,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_Game AS
 		GROUP BY ct.ID, ct.Name) ct1
 	) CategoryTypes ON TRUE   
     LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONCAT(CONVERT(c.ID,CHAR), '|', CONVERT(c.CategoryTypeID,CHAR), '|', CASE c.IsTimerAscending WHEN 1 THEN 'True' ELSE 'False' END, '|', c.Name) ORDER BY c.ID SEPARATOR '^^') Value
+		SELECT GROUP_CONCAT(CONCAT(CONVERT(c.ID,CHAR), '|', CONVERT(c.CategoryTypeID,CHAR), '|', CASE c.IsTimerAscending WHEN 1 THEN 'True' ELSE 'False' END, '|', c.Name) ORDER BY c.IsMiscellaneous, c.ID SEPARATOR '^^') Value
         FROM tbl_Category c
         WHERE c.GameID = g.ID
     ) Categories ON TRUE
@@ -1008,8 +1009,9 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunSummary AS
     	   rn1.SpeedRunComID,
            g.ID AS GameID,
            g.Name AS GameName,
-		   g.Abbr AS GameAbbr,
+		   g.Abbr AS GameAbbr, 
            gl.CoverImagePath AS GameCoverImageUrl,
+		   gr.ShowMilliseconds,           
            ct.ID AS CategoryTypeID,
            ct.Name AS CategoryTypeName,           
            c.ID AS CategoryID,
@@ -1030,6 +1032,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunSummary AS
     JOIN tbl_SpeedRun_SpeedRunComID rn1 ON rn1.SpeedRunID = rn.ID
     JOIN tbl_Game g ON g.ID = rn.GameID
 	JOIN tbl_Game_Link gl ON gl.GameID = g.ID
+	JOIN tbl_Game_Ruleset gr ON gr.GameID = g.ID
     JOIN tbl_Category c ON c.ID = rn.CategoryID
     JOIN tbl_CategoryType ct ON ct.ID = c.CategoryTypeID 
     LEFT JOIN tbl_Level l ON l.ID = rn.LevelID
@@ -1271,8 +1274,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE GetLatestSpeedRuns
 BEGIN
      -- New
      IF SpeedRunListCategoryID = 0 THEN
-          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
-               rn.GameCoverImageUrl, 
+          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
 			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate
           FROM vw_SpeedRunSummary rn
@@ -1283,8 +1285,7 @@ BEGIN
           LIMIT TopAmount;
 	 -- Top 5%
      ELSEIF SpeedRunListCategoryID = 1 THEN
-          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
-               rn.GameCoverImageUrl,
+          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
 			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate
 		  FROM vw_SpeedRunSummary rn,        
@@ -1306,8 +1307,7 @@ BEGIN
           LIMIT TopAmount;                    
 	 -- World Records
      ELSEIF SpeedRunListCategoryID = 2 THEN
-          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
-               rn.GameCoverImageUrl,                
+          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,              
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
 			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate
           FROM vw_SpeedRunSummary rn,
@@ -1328,8 +1328,7 @@ BEGIN
           LIMIT TopAmount;         
 	 -- Top 3
      ELSEIF SpeedRunListCategoryID = 3 THEN
-          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
-               rn.GameCoverImageUrl,              
+          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,            
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
 			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate
           FROM vw_SpeedRunSummary rn,
@@ -1350,8 +1349,7 @@ BEGIN
           LIMIT TopAmount;            
 	 -- Person Bests
      ELSEIF SpeedRunListCategoryID = 4 THEN
-		  SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
-		  rn.GameCoverImageUrl,           
+		  SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,         
 		  rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
 		  rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate
 		  FROM vw_SpeedRunSummary rn,
@@ -1373,8 +1371,7 @@ BEGIN
 		  LIMIT TopAmount;        
 	 -- Popular
      ELSEIF SpeedRunListCategoryID = 5 THEN
-          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
-               rn.GameCoverImageUrl,               
+          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,             
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
 			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate
           FROM vw_SpeedRunSummary rn,
@@ -1391,8 +1388,7 @@ BEGIN
           LIMIT TopAmount;           
 	 -- Events
      ELSEIF SpeedRunListCategoryID = 7 THEN
-          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
-               rn.GameCoverImageUrl,              
+          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,          
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
 			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate
           FROM vw_SpeedRunSummary rn
@@ -1404,8 +1400,7 @@ BEGIN
           LIMIT TopAmount;  
 	 -- First
      ELSEIF SpeedRunListCategoryID = 8 THEN
-          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
-               rn.GameCoverImageUrl,             
+          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,           
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
 			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate
           FROM vw_SpeedRunSummary rn,
@@ -1426,8 +1421,7 @@ BEGIN
           LIMIT TopAmount;   
 	 -- Trending
      ELSEIF SpeedRunListCategoryID = 9 THEN
-          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
-               rn.GameCoverImageUrl,             
+          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,            
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
 			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate            
           FROM vw_SpeedRunSummary rn,
@@ -2553,7 +2547,7 @@ BEGIN
 	CREATE INDEX IDX_SpeedRunsRankedBatch_ID ON SpeedRunsRankedBatch (ID);
 
 	INSERT INTO LeaderboardKeys (GameID, CategoryID, IsTimerAscending)
-	SELECT g.ID, c.ID, COALESCE(rn.IsTimerAscending, 0)
+	SELECT g.ID, c.ID, COALESCE(c.IsTimerAscending, 0)
 	FROM tbl_Game_Full g
 	JOIN tbl_Category_Full c ON c.GameID = g.ID
 	GROUP BY g.ID, c.ID;

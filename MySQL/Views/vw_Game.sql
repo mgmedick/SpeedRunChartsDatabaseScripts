@@ -3,10 +3,11 @@ DROP VIEW IF EXISTS vw_Game;
 
 CREATE DEFINER=`root`@`localhost` VIEW vw_Game AS
 
-    SELECT g.ID, g.Name, g.Abbr, gl.CoverImagePath AS CoverImageUrl, g.YearOfRelease, CategoryTypes.Value AS CategoryTypes, Categories.Value AS Categories, Levels.Value AS Levels,
-        Variables.Value AS Variables, VariableValues.Value AS VariableValues, Platforms.Value AS Platforms, Moderators.Value AS Moderators, gl.SpeedRunComUrl             
+    SELECT g.ID, g.Name, g.Abbr, gl.CoverImagePath AS CoverImageUrl, g.YearOfRelease, gr.ShowMilliseconds, CategoryTypes.Value AS CategoryTypes, Categories.Value AS Categories, Levels.Value AS Levels,
+        Variables.Value AS Variables, VariableValues.Value AS VariableValues, Platforms.Value AS Platforms, Moderators.Value AS Moderators, gl.SpeedRunComUrl         
     FROM tbl_Game g
     JOIN tbl_Game_Link gl ON gl.GameID = g.ID
+    JOIN tbl_Game_Ruleset gr ON gr.GameID = g.ID
 	LEFT JOIN LATERAL (
 		SELECT GROUP_CONCAT(CONCAT(CONVERT(ct1.ID,CHAR), '|', ct1.Name) ORDER BY ct1.ID SEPARATOR '^^') Value
 		FROM (SELECT ct.ID, ct.Name
@@ -16,7 +17,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_Game AS
 		GROUP BY ct.ID, ct.Name) ct1
 	) CategoryTypes ON TRUE   
     LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONCAT(CONVERT(c.ID,CHAR), '|', CONVERT(c.CategoryTypeID,CHAR), '|', CASE c.IsTimerAscending WHEN 1 THEN 'True' ELSE 'False' END, '|', c.Name) ORDER BY c.ID SEPARATOR '^^') Value
+		SELECT GROUP_CONCAT(CONCAT(CONVERT(c.ID,CHAR), '|', CONVERT(c.CategoryTypeID,CHAR), '|', CASE c.IsTimerAscending WHEN 1 THEN 'True' ELSE 'False' END, '|', c.Name) ORDER BY c.IsMiscellaneous, c.ID SEPARATOR '^^') Value
         FROM tbl_Category c
         WHERE c.GameID = g.ID
     ) Categories ON TRUE
@@ -47,4 +48,3 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_Game AS
 		JOIN tbl_Game_Moderator gm ON gm.UserID = u.ID
 		WHERE gm.GameID = g.ID
     ) Moderators ON TRUE;
-    

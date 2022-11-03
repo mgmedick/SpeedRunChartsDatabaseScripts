@@ -7,8 +7,9 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunSummary AS
     	   rn1.SpeedRunComID,
            g.ID AS GameID,
            g.Name AS GameName,
-		   g.Abbr AS GameAbbr,
+		   g.Abbr AS GameAbbr, 
            gl.CoverImagePath AS GameCoverImageUrl,
+		   gr.ShowMilliseconds,           
            ct.ID AS CategoryTypeID,
            ct.Name AS CategoryTypeName,           
            c.ID AS CategoryID,
@@ -29,6 +30,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunSummary AS
     JOIN tbl_SpeedRun_SpeedRunComID rn1 ON rn1.SpeedRunID = rn.ID
     JOIN tbl_Game g ON g.ID = rn.GameID
 	JOIN tbl_Game_Link gl ON gl.GameID = g.ID
+	JOIN tbl_Game_Ruleset gr ON gr.GameID = g.ID
     JOIN tbl_Category c ON c.ID = rn.CategoryID
     JOIN tbl_CategoryType ct ON ct.ID = c.CategoryTypeID 
     LEFT JOIN tbl_Level l ON l.ID = rn.LevelID

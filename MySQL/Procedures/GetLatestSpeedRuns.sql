@@ -11,8 +11,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE GetLatestSpeedRuns
 BEGIN
      -- New
      IF SpeedRunListCategoryID = 0 THEN
-          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
-               rn.GameCoverImageUrl, 
+          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
 			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate
           FROM vw_SpeedRunSummary rn
@@ -23,8 +22,7 @@ BEGIN
           LIMIT TopAmount;
 	 -- Top 5%
      ELSEIF SpeedRunListCategoryID = 1 THEN
-          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
-               rn.GameCoverImageUrl,
+          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
 			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate
 		  FROM vw_SpeedRunSummary rn,        
@@ -46,8 +44,7 @@ BEGIN
           LIMIT TopAmount;                    
 	 -- World Records
      ELSEIF SpeedRunListCategoryID = 2 THEN
-          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
-               rn.GameCoverImageUrl,                
+          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,              
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
 			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate
           FROM vw_SpeedRunSummary rn,
@@ -68,8 +65,7 @@ BEGIN
           LIMIT TopAmount;         
 	 -- Top 3
      ELSEIF SpeedRunListCategoryID = 3 THEN
-          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
-               rn.GameCoverImageUrl,              
+          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,            
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
 			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate
           FROM vw_SpeedRunSummary rn,
@@ -90,8 +86,7 @@ BEGIN
           LIMIT TopAmount;            
 	 -- Person Bests
      ELSEIF SpeedRunListCategoryID = 4 THEN
-		  SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
-		  rn.GameCoverImageUrl,           
+		  SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,         
 		  rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
 		  rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate
 		  FROM vw_SpeedRunSummary rn,
@@ -113,8 +108,7 @@ BEGIN
 		  LIMIT TopAmount;        
 	 -- Popular
      ELSEIF SpeedRunListCategoryID = 5 THEN
-          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
-               rn.GameCoverImageUrl,               
+          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,             
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
 			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate
           FROM vw_SpeedRunSummary rn,
@@ -131,8 +125,7 @@ BEGIN
           LIMIT TopAmount;           
 	 -- Events
      ELSEIF SpeedRunListCategoryID = 7 THEN
-          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
-               rn.GameCoverImageUrl,              
+          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,          
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
 			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate
           FROM vw_SpeedRunSummary rn
@@ -144,8 +137,7 @@ BEGIN
           LIMIT TopAmount;  
 	 -- First
      ELSEIF SpeedRunListCategoryID = 8 THEN
-          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
-               rn.GameCoverImageUrl,             
+          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,           
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
 			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate
           FROM vw_SpeedRunSummary rn,
@@ -166,8 +158,7 @@ BEGIN
           LIMIT TopAmount;   
 	 -- Trending
      ELSEIF SpeedRunListCategoryID = 9 THEN
-          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, 
-               rn.GameCoverImageUrl,             
+          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,            
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
 			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate            
           FROM vw_SpeedRunSummary rn,
@@ -190,6 +181,3 @@ BEGIN
      END IF;
 END $$
 DELIMITER ;
-
-
-

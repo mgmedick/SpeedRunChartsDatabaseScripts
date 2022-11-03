@@ -63,7 +63,7 @@ BEGIN
 	CREATE INDEX IDX_SpeedRunsRankedBatch_ID ON SpeedRunsRankedBatch (ID);
 
 	INSERT INTO LeaderboardKeys (GameID, CategoryID, IsTimerAscending)
-	SELECT g.ID, c.ID, COALESCE(rn.IsTimerAscending, 0)
+	SELECT g.ID, c.ID, COALESCE(c.IsTimerAscending, 0)
 	FROM tbl_Game_Full g
 	JOIN tbl_Category_Full c ON c.GameID = g.ID
 	GROUP BY g.ID, c.ID;
