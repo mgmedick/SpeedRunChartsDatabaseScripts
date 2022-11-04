@@ -2545,6 +2545,7 @@ BEGIN
 		`Rank` INT			
 	);
 	CREATE INDEX IDX_SpeedRunsRankedBatch_ID ON SpeedRunsRankedBatch (ID);
+    CREATE INDEX IDX_tbl_SpeedRun_Full_GameID_CategoryID_LevelID ON tbl_SpeedRun_Full (GameID, CategoryID, LevelID);
 
 	INSERT INTO LeaderboardKeys (GameID, CategoryID, IsTimerAscending)
 	SELECT g.ID, c.ID, COALESCE(c.IsTimerAscending, 0)
@@ -2590,7 +2591,7 @@ BEGIN
     FROM SpeedRunsToUpdate rn
     WHERE rn.RankPriority = 1
     AND COALESCE(PlayerIDs, GuestIDs) IS NOT NULL;
-   
+    
     IF Debug = 0 THEN        
     	SELECT COUNT(*) INTO MaxRowCount FROM SpeedRunsToUpdate;      
         WHILE RowCount < MaxRowCount DO
@@ -2601,7 +2602,7 @@ BEGIN
 		    ORDER BY RowNum
 		    LIMIT BatchCount; 
 		   
-			UPDATE tbl_SpeedRun rn
+			UPDATE tbl_SpeedRun_Full rn
 		  	JOIN SpeedRunsToUpdateBatch rn1 ON rn1.ID = rn.ID
 		  	SET rn.`Rank` = NULL;	
 		  
