@@ -3,7 +3,7 @@ DROP VIEW IF EXISTS vw_Game;
 
 CREATE DEFINER=`root`@`localhost` VIEW vw_Game AS
 
-    SELECT g.ID, g.Name, g.Abbr, gl.CoverImagePath AS CoverImageUrl, g.YearOfRelease, gr.ShowMilliseconds, CategoryTypes.Value AS CategoryTypes, Categories.Value AS Categories, Levels.Value AS Levels,
+    SELECT g.ID, g.Name, g.Abbr, gl.CoverImagePath AS CoverImageUrl, g.YearOfRelease, COALESCE(g.IsChanged, 0) AS IsChanged, gr.ShowMilliseconds, CategoryTypes.Value AS CategoryTypes, Categories.Value AS Categories, Levels.Value AS Levels,
         Variables.Value AS Variables, VariableValues.Value AS VariableValues, Platforms.Value AS Platforms, Moderators.Value AS Moderators, gl.SpeedRunComUrl         
     FROM tbl_Game g
     JOIN tbl_Game_Link gl ON gl.GameID = g.ID
@@ -48,3 +48,4 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_Game AS
 		JOIN tbl_Game_Moderator gm ON gm.UserID = u.ID
 		WHERE gm.GameID = g.ID
     ) Moderators ON TRUE;
+   

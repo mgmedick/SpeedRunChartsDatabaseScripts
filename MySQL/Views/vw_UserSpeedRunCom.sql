@@ -13,7 +13,8 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_UserSpeedRunCom AS
            ul.HitboxProfileUrl,      
            ul.YoutubeProfileUrl,      
            ul.TwitterProfileUrl,      
-           ul.SpeedRunsLiveProfileUrl
+           ul.SpeedRunsLiveProfileUrl,
+	       u.IsChanged           
     FROM tbl_User u
     JOIN tbl_User_SpeedRunComID uc ON uc.UserID = u.ID
     JOIN tbl_User_Link ul ON ul.UserID = u.ID

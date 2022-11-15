@@ -9,6 +9,9 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE GetLatestSpeedRuns
 	IN OrderValueOffset INT
 )
 BEGIN
+	
+	SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;	
+	
      -- New
      IF SpeedRunListCategoryID = 0 THEN
           SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,

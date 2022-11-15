@@ -48,6 +48,7 @@ BEGIN
 	    ImportedDate datetime NOT NULL DEFAULT (UTC_TIMESTAMP),
 		ModifiedDate datetime NULL,
 		Abbr varchar (100) NULL,
+		IsChanged bit NULL,		
 	    PRIMARY KEY (ID)
 	);
 	

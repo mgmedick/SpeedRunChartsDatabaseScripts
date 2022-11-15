@@ -29,6 +29,7 @@ CREATE TABLE tbl_User
     ImportedDate datetime NOT NULL DEFAULT (UTC_TIMESTAMP),
 	ModifiedDate datetime NULL,
 	Abbr varchar (100) NULL,
+	IsChanged bit NULL,
     PRIMARY KEY (ID)
 );
 -- ALTER TABLE tbl_User ADD CONSTRAINT FK_tbl_User_tbl_UserRole FOREIGN KEY (UserRoleID) REFERENCES tbl_UserRole (ID);
@@ -683,7 +684,7 @@ DROP VIEW IF EXISTS vw_Game;
 
 CREATE DEFINER=`root`@`localhost` VIEW vw_Game AS
 
-    SELECT g.ID, g.Name, g.Abbr, gl.CoverImagePath AS CoverImageUrl, g.YearOfRelease, gr.ShowMilliseconds, CategoryTypes.Value AS CategoryTypes, Categories.Value AS Categories, Levels.Value AS Levels,
+    SELECT g.ID, g.Name, g.Abbr, gl.CoverImagePath AS CoverImageUrl, g.YearOfRelease, COALESCE(g.IsChanged, 0) AS IsChanged, gr.ShowMilliseconds, CategoryTypes.Value AS CategoryTypes, Categories.Value AS Categories, Levels.Value AS Levels,
         Variables.Value AS Variables, VariableValues.Value AS VariableValues, Platforms.Value AS Platforms, Moderators.Value AS Moderators, gl.SpeedRunComUrl         
     FROM tbl_Game g
     JOIN tbl_Game_Link gl ON gl.GameID = g.ID
@@ -1170,7 +1171,8 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_UserSpeedRunCom AS
            ul.HitboxProfileUrl,      
            ul.YoutubeProfileUrl,      
            ul.TwitterProfileUrl,      
-           ul.SpeedRunsLiveProfileUrl
+           ul.SpeedRunsLiveProfileUrl,
+	       u.IsChanged           
     FROM tbl_User u
     JOIN tbl_User_SpeedRunComID uc ON uc.UserID = u.ID
     JOIN tbl_User_Link ul ON ul.UserID = u.ID
@@ -1272,6 +1274,9 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE GetLatestSpeedRuns
 	IN OrderValueOffset INT
 )
 BEGIN
+	
+	SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;	
+	
      -- New
      IF SpeedRunListCategoryID = 0 THEN
           SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,
@@ -1590,6 +1595,7 @@ BEGIN
 	    ImportedDate datetime NOT NULL DEFAULT (UTC_TIMESTAMP),
 		ModifiedDate datetime NULL,
 		Abbr varchar (100) NULL,
+		IsChanged bit NULL,		
 	    PRIMARY KEY (ID)
 	);
 	
