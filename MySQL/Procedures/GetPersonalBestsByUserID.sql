@@ -9,6 +9,8 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE GetPersonalBestsByUserID(
 	IN UserID INT
 )
 BEGIN
+	SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+
 	DROP TEMPORARY TABLE IF EXISTS ResultsRaw;
 	CREATE TEMPORARY TABLE ResultsRaw 
 	SELECT ROW_NUMBER() OVER (PARTITION BY rn.GameID, rn.CategoryID, rn.LevelID, rn.SubCategoryVariableValueIDs ORDER BY rn.PrimaryTime) AS RowNum,

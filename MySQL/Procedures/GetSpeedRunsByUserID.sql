@@ -10,6 +10,8 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE GetSpeedRunsByUserID(
     IN UserID INT	
 )
 BEGIN
+     SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+    
 	 SELECT rn.ID,
      rn.GameID,
      -- rn.CategoryTypeID,

@@ -3,7 +3,7 @@ DROP VIEW IF EXISTS vw_User;
 
 CREATE DEFINER=`root`@`localhost` VIEW vw_User AS
 
-	SELECT u.ID, u.Name, u.Abbr, u.SignUpDate, uc.Location,
+	SELECT u.ID, u.Name, u.Abbr, u.SignUpDate, COALESCE(u.IsChanged, 0) AS IsChanged, uc.Location,
 	ul.SpeedRunComUrl, ul.ProfileImageUrl, ul.TwitchProfileUrl, ul.HitboxProfileUrl, ul.YoutubeProfileUrl, ul.TwitterProfileUrl, ul.SpeedRunsLiveProfileUrl,
 	TotalSpeedRuns.Value AS TotalSpeedRuns,
 	TotalWorldRecords.Value AS TotalWorldRecords,

@@ -9,7 +9,6 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE GetLatestSpeedRuns
 	IN OrderValueOffset INT
 )
 BEGIN
-	
 	SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;	
 	
      -- New
