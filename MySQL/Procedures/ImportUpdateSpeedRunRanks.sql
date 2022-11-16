@@ -5,14 +5,14 @@ DELIMITER $$
 CREATE DEFINER=`root`@`localhost` PROCEDURE ImportUpdateSpeedRunRanks(
 	IN LastImportDate DATETIME
 )
-BEGIN
+BEGIN	
     DECLARE CurrDate DATETIME DEFAULT UTC_TIMESTAMP;
     DECLARE BatchCount INT DEFAULT 1000;
 	DECLARE RowCount INT DEFAULT 0;
 	DECLARE MaxRowCount INT;     
     DECLARE Debug BIT DEFAULT 0;
 
-	SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;   
+	SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;      
    
    	DROP TEMPORARY TABLE IF EXISTS LeaderboardKeysFromRuns;
 	CREATE TEMPORARY TABLE LeaderboardKeysFromRuns
@@ -167,8 +167,7 @@ BEGIN
 		RANK() OVER (PARTITION BY rn.GameID, rn.CategoryID, rn.LevelID, rn.SubCategoryVariableValues ORDER BY rn.PrimaryTime)
 	END    
 	FROM SpeedRunsToUpdate rn
-	WHERE rn.RankPriority = 1
-	AND COALESCE(PlayerIDs, GuestIDs) IS NOT NULL;
+	WHERE rn.RankPriority = 1;
 
     IF Debug = 0 THEN        
     	SELECT COUNT(*) INTO MaxRowCount FROM SpeedRunsToUpdate;      

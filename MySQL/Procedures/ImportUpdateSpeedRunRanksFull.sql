@@ -119,9 +119,8 @@ BEGIN
 		RANK() OVER (PARTITION BY rn.GameID, rn.CategoryID, rn.LevelID, rn.SubCategoryVariableValues ORDER BY rn.PrimaryTime)
 	END    
 	FROM SpeedRunsToUpdate rn
-	WHERE rn.RankPriority = 1
-	AND COALESCE(PlayerIDs, GuestIDs) IS NOT NULL;
-    
+	WHERE rn.RankPriority = 1;
+
     IF Debug = 0 THEN        
 	   	SET RowCount = 0;
     	SELECT COUNT(*) INTO MaxRowCount FROM SpeedRunsRanked;  	   
@@ -161,4 +160,3 @@ BEGIN
 
 END $$
 DELIMITER ;
-
