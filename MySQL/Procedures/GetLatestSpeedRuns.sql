@@ -6,11 +6,12 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE GetLatestSpeedRuns
 (
 	IN SpeedRunListCategoryID INT,
 	IN TopAmount INT,
-	IN OrderValueOffset INT
+	IN OrderValueOffset INT,
+	IN SpeedRunListCategoryTypeID INT
 )
-BEGIN
-	SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;	
-	
+BEGIN	
+	SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+
      -- New
      IF SpeedRunListCategoryID = 0 THEN
           SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,
@@ -18,7 +19,8 @@ BEGIN
 			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate
           FROM vw_SpeedRunSummary rn
           WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
-		  AND rn.IsExcludeFromSpeedRunList = 0        
+		  AND ((SpeedRunListCategoryTypeID IS NULL) OR (rn.CategoryTypeID = SpeedRunListCategoryTypeID))          
+		  AND rn.IsExcludeFromSpeedRunList = 0
           AND rn.EmbeddedVideoLinks IS NOT NULL
           ORDER BY rn.ID DESC
           LIMIT TopAmount;
@@ -38,6 +40,7 @@ BEGIN
 					HAVING MAX(rn1.`Rank`) > 1
 				) AS MaxRankPercent
 		  WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
+		  AND ((SpeedRunListCategoryTypeID IS NULL) OR (rn.CategoryTypeID = SpeedRunListCategoryTypeID))  		  
 		  AND rn.IsExcludeFromSpeedRunList = 0  
 		  AND rn.EmbeddedVideoLinks IS NOT NULL
 		  AND rn.`Rank` IS NOT NULL	  
@@ -59,6 +62,7 @@ BEGIN
 					AND rn1.`Rank` IS NOT NULL
 				) AS MaxRank          
           WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
+		  AND ((SpeedRunListCategoryTypeID IS NULL) OR (rn.CategoryTypeID = SpeedRunListCategoryTypeID))            
 		  AND rn.IsExcludeFromSpeedRunList = 0             
           AND rn.EmbeddedVideoLinks IS NOT NULL
 		  AND rn.`Rank` = 1
@@ -80,6 +84,7 @@ BEGIN
 					AND rn1.`Rank` IS NOT NULL
 				) AS MaxRank             
           WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
+		  AND ((SpeedRunListCategoryTypeID IS NULL) OR (rn.CategoryTypeID = SpeedRunListCategoryTypeID))            
 		  AND rn.IsExcludeFromSpeedRunList = 0             
           AND rn.EmbeddedVideoLinks IS NOT NULL
 		  AND rn.`Rank` <= 3
@@ -98,17 +103,19 @@ BEGIN
 					AND rn1.CategoryID = rn.CategoryID
 					AND COALESCE(rn1.LevelID,'') = COALESCE(rn.LevelID,'')
 					AND COALESCE(rn1.SubCategoryVariableValueIDs,'') = COALESCE(rn.SubCategoryVariableValueIDs,'')
+					AND rn1.Players = rn.Players
 					AND rn1.ID <> rn.ID
 					LIMIT 1
 				) AS OtherRun		  
 		  WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
+		  AND ((SpeedRunListCategoryTypeID IS NULL) OR (rn.CategoryTypeID = SpeedRunListCategoryTypeID))  		  
 		  AND rn.IsExcludeFromSpeedRunList = 0    		  
 		  AND rn.EmbeddedVideoLinks IS NOT NULL
 		  AND rn.`Rank` IS NOT NULL
 		  AND OtherRun.Value IS NOT NULL
 		  ORDER BY rn.ID DESC
 		  LIMIT TopAmount;        
-	 -- Popular
+	 -- Hot
      ELSEIF SpeedRunListCategoryID = 5 THEN
           SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,             
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
@@ -119,12 +126,13 @@ BEGIN
 					WHERE rn1.SpeedRunID = rn.ID
 			    ) AS MaxViewCount          
           WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
+		  AND ((SpeedRunListCategoryTypeID IS NULL) OR (rn.CategoryTypeID = SpeedRunListCategoryTypeID))            
 		  AND rn.IsExcludeFromSpeedRunList = 0           
           AND rn.EmbeddedVideoLinks IS NOT NULL         
           AND MaxViewCount.Value >= 100
           AND MaxViewCount.VideoCount = 1
           ORDER BY rn.ID DESC
-          LIMIT TopAmount;           
+          LIMIT TopAmount;          
 	 -- Events
      ELSEIF SpeedRunListCategoryID = 7 THEN
           SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,          
@@ -132,12 +140,13 @@ BEGIN
 			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate
           FROM vw_SpeedRunSummary rn
           WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
+		  AND ((SpeedRunListCategoryTypeID IS NULL) OR (rn.CategoryTypeID = SpeedRunListCategoryTypeID))            
 		  AND rn.IsExcludeFromSpeedRunList = 0             
           AND rn.EmbeddedVideoLinks IS NOT NULL
           AND EXISTS (SELECT 1 FROM tbl_SpeedRun_Video_Detail rn1 JOIN tbl_Channel ca ON ca.Code = rn1.ChannelCode WHERE rn1.SpeedRunID = rn.ID)
 		  ORDER BY rn.ID DESC
           LIMIT TopAmount;  
-	 -- First
+	 -- Fresh
      ELSEIF SpeedRunListCategoryID = 8 THEN
           SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,           
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
@@ -152,6 +161,7 @@ BEGIN
 					AND rn1.`Rank` IS NOT NULL
 				) AS MaxRank          
           WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
+		  AND ((SpeedRunListCategoryTypeID IS NULL) OR (rn.CategoryTypeID = SpeedRunListCategoryTypeID))            
 		  AND rn.IsExcludeFromSpeedRunList = 0              
           AND rn.EmbeddedVideoLinks IS NOT NULL
 		  AND rn.`Rank` = 1
@@ -163,23 +173,57 @@ BEGIN
           SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,            
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
 			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate            
-          FROM vw_SpeedRunSummary rn,
-		  LATERAL (SELECT COUNT(rn1.ID) AS Value
-					FROM vw_SpeedRunSummaryLite rn1
-					WHERE rn1.GameID = rn.GameID
-					AND rn1.CategoryID = rn.CategoryID
-					AND COALESCE(rn1.LevelID,'') = COALESCE(rn.LevelID,'')
-					AND COALESCE(rn1.SubCategoryVariableValueIDs,'') = COALESCE(rn.SubCategoryVariableValueIDs,'')
-					AND rn1.ID <> rn.ID
-					AND rn1.VerifyDate < rn.VerifyDate
-					AND rn1.VerifyDate >= DATE_ADD(rn.VerifyDate, INTERVAL -5 DAY)
-				) AS RecentRuns            
-          WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
+          FROM vw_SpeedRunSummary rn
+		  JOIN tbl_game g ON g.ID = rn.GameID,
+ 		  LATERAL (SELECT COUNT(rn1.ID) AS Value, MIN(rn1.`Rank`) AS MinRank
+				FROM vw_SpeedRunSummaryLite rn1
+				WHERE rn1.GameID = rn.GameID
+				AND rn1.CategoryID = rn.CategoryID
+				AND COALESCE(rn1.LevelID,'') = COALESCE(rn.LevelID,'')
+				AND COALESCE(rn1.SubCategoryVariableValueIDs,'') = COALESCE(rn.SubCategoryVariableValueIDs,'')
+				AND rn1.ID <> rn.ID
+				AND rn1.`Rank` IS NOT NULL
+				AND rn1.VerifyDate < rn.VerifyDate
+				AND rn1.VerifyDate >= DATE_ADD(rn.VerifyDate, INTERVAL -5 DAY)				
+			) AS RecentRuns  
+		  WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
+		  AND ((SpeedRunListCategoryTypeID IS NULL) OR (rn.CategoryTypeID = SpeedRunListCategoryTypeID))            
 		  AND rn.IsExcludeFromSpeedRunList = 0              
           AND rn.EmbeddedVideoLinks IS NOT NULL
-          AND RecentRuns.Value >= 3
+          AND rn.`Rank` IS NOT NULL
+          AND g.CreatedDate >= DATE_ADD(rn.VerifyDate, INTERVAL -30 DAY)
+          AND RecentRuns.Value >= 2
+          AND rn.`Rank` < RecentRuns.MinRank
           ORDER BY rn.ID DESC
-          LIMIT TopAmount;         
+          LIMIT TopAmount;   
+	 -- Popular
+     ELSEIF SpeedRunListCategoryID = 10 THEN
+          SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,            
+               rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
+			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate            
+          FROM vw_SpeedRunSummary rn,
+ 		  LATERAL (SELECT COUNT(rn1.ID) AS Value, MIN(rn1.`Rank`) AS MinRank
+				FROM vw_SpeedRunSummaryLite rn1
+				WHERE rn1.GameID = rn.GameID
+				AND rn1.CategoryID = rn.CategoryID
+				AND COALESCE(rn1.LevelID,'') = COALESCE(rn.LevelID,'')
+				AND COALESCE(rn1.SubCategoryVariableValueIDs,'') = COALESCE(rn.SubCategoryVariableValueIDs,'')
+				AND rn1.ID <> rn.ID
+				AND rn1.`Rank` IS NOT NULL
+				AND rn1.VerifyDate < rn.VerifyDate
+				AND rn1.VerifyDate >= DATE_ADD(rn.VerifyDate, INTERVAL -5 DAY)				
+			) AS RecentRuns             
+          WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
+		  AND ((SpeedRunListCategoryTypeID IS NULL) OR (rn.CategoryTypeID = SpeedRunListCategoryTypeID))            
+		  AND rn.IsExcludeFromSpeedRunList = 0              
+          AND rn.EmbeddedVideoLinks IS NOT NULL
+          AND rn.`Rank` IS NOT NULL          
+          AND RecentRuns.Value >= 2
+		  AND rn.`Rank` < RecentRuns.MinRank          
+          ORDER BY rn.ID DESC
+          LIMIT TopAmount;      
      END IF;
 END $$
 DELIMITER ;
+
+
