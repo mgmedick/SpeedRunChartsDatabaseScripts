@@ -1001,6 +1001,114 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGridUser AS
 		WHERE rg.SpeedRunID = rn.ID
 	) Guests ON TRUE;
 
+-- vw_WorldRecordGrid
+DROP VIEW IF EXISTS vw_WorldRecordGrid;
+
+CREATE DEFINER=`root`@`localhost` VIEW vw_WorldRecordGrid AS
+
+	SELECT rn.ID,
+           rn.GameID,
+           c.ID AS CategoryID,
+           c.Name AS CategoryName,
+           c.CategoryTypeID,           
+           l.ID AS LevelID,
+           l.Name AS LevelName,           
+           p.ID AS PlatformID,
+           p.Name AS PlatformName,
+           SubCategoryVariableValueIDs.Value AS SubCategoryVariableValueIDs,
+           VariableValues.Value AS VariableValues,
+           Players.Value AS Players,
+		   Guests.Value AS Guests,
+           rn.`Rank`,
+           rn.PrimaryTime,
+           rc.Comment,
+           rn.DateSubmitted,
+           rn.VerifyDate
+    FROM tbl_SpeedRun rn
+   	JOIN tbl_SpeedRun_System rs ON rs.SpeedRunID = rn.ID
+    JOIN tbl_Category c ON c.ID = rn.CategoryID
+    LEFT JOIN tbl_Level l ON l.ID = rn.LevelID    
+   	LEFT JOIN tbl_SpeedRun_Comment rc ON rc.SpeedRunID = rn.ID
+   	LEFT JOIN tbl_Platform p ON p.ID = rs.PlatformID
+   	LEFT JOIN LATERAL (
+		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) SEPARATOR ',') Value
+        FROM tbl_SpeedRun_VariableValue rv
+        JOIN tbl_Variable v ON v.ID=rv.VariableID AND v.IsSubCategory = 1
+        WHERE rv.SpeedRunID = rn.ID     
+	) SubCategoryVariableValueIDs ON TRUE      	
+	LEFT JOIN LATERAL (
+		SELECT GROUP_CONCAT(CONCAT(CONVERT(rv.VariableID,CHAR), '|', CONVERT(rv.VariableValueID,CHAR)) SEPARATOR ',') Value
+	    FROM tbl_SpeedRun_VariableValue rv
+	    WHERE rv.SpeedRunID = rn.ID   
+	) VariableValues ON TRUE     
+	LEFT JOIN LATERAL (
+		SELECT GROUP_CONCAT(CONCAT(CONVERT(u.ID,CHAR), '¦', u.Name  , '¦', u.Abbr) SEPARATOR '^^') Value
+	    FROM tbl_SpeedRun_Player rp  
+		JOIN tbl_User u ON u.ID = rp.UserID
+		WHERE rp.SpeedRunID = rn.ID
+	) Players ON TRUE    	
+	LEFT JOIN LATERAL (
+		SELECT GROUP_CONCAT(CONCAT(CONVERT(g.ID,CHAR), '¦', g.Name  , '¦', g.Abbr) SEPARATOR '^^') Value
+	    FROM tbl_SpeedRun_Guest rg
+		JOIN tbl_Guest g ON g.ID = rg.GuestID
+		WHERE rg.SpeedRunID = rn.ID
+	) Guests ON TRUE;
+
+-- vw_WorldRecordGridUser
+DROP VIEW IF EXISTS vw_WorldRecordGridUser;
+
+CREATE DEFINER=`root`@`localhost` VIEW vw_WorldRecordGridUser AS
+
+	SELECT rn.ID,
+           rn.GameID,
+           c.ID AS CategoryID,
+           c.Name AS CategoryName,
+           c.CategoryTypeID,           
+           l.ID AS LevelID,
+           l.Name AS LevelName,           
+           p.ID AS PlatformID,
+           p.Name AS PlatformName,
+           SubCategoryVariableValueIDs.Value AS SubCategoryVariableValueIDs,
+           VariableValues.Value AS VariableValues,
+           Players.Value AS Players,
+		   Guests.Value AS Guests,
+           rn.`Rank`,
+           rn.PrimaryTime,
+           rc.Comment,
+           rn.DateSubmitted,
+           rn.VerifyDate,
+           rp.UserID
+    FROM tbl_SpeedRun rn
+   	JOIN tbl_SpeedRun_System rs ON rs.SpeedRunID = rn.ID
+    JOIN tbl_SpeedRun_Player rp ON rp.SpeedRunID = rn.ID
+    JOIN tbl_Category c ON c.ID = rn.CategoryID
+    LEFT JOIN tbl_Level l ON l.ID = rn.LevelID    
+   	LEFT JOIN tbl_SpeedRun_Comment rc ON rc.SpeedRunID = rn.ID
+   	LEFT JOIN tbl_Platform p ON p.ID = rs.PlatformID
+   	LEFT JOIN LATERAL (
+		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) SEPARATOR ',') Value
+        FROM tbl_SpeedRun_VariableValue rv
+        JOIN tbl_Variable v ON v.ID=rv.VariableID AND v.IsSubCategory = 1
+        WHERE rv.SpeedRunID = rn.ID     
+	) SubCategoryVariableValueIDs ON TRUE      	
+	LEFT JOIN LATERAL (
+		SELECT GROUP_CONCAT(CONCAT(CONVERT(rv.VariableID,CHAR), '|', CONVERT(rv.VariableValueID,CHAR)) SEPARATOR ',') Value
+	    FROM tbl_SpeedRun_VariableValue rv
+	    WHERE rv.SpeedRunID = rn.ID   
+	) VariableValues ON TRUE     
+	LEFT JOIN LATERAL (
+		SELECT GROUP_CONCAT(CONCAT(CONVERT(u.ID,CHAR), '¦', u.Name  , '¦', u.Abbr) SEPARATOR '^^') Value
+	    FROM tbl_SpeedRun_Player rp  
+		JOIN tbl_User u ON u.ID = rp.UserID
+		WHERE rp.SpeedRunID = rn.ID
+	) Players ON TRUE    	
+	LEFT JOIN LATERAL (
+		SELECT GROUP_CONCAT(CONCAT(CONVERT(g.ID,CHAR), '¦', g.Name  , '¦', g.Abbr) SEPARATOR '^^') Value
+	    FROM tbl_SpeedRun_Guest rg
+		JOIN tbl_Guest g ON g.ID = rg.GuestID
+		WHERE rg.SpeedRunID = rn.ID
+	) Guests ON TRUE;
+	
 -- vw_SpeedRunSummary
 DROP VIEW IF EXISTS vw_SpeedRunSummary;
 
@@ -1092,6 +1200,54 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunSummaryLite AS
 		WHERE rp.SpeedRunID = rn.ID
 	) Players ON TRUE;
 
+-- vw_SpeedRunChart
+DROP VIEW IF EXISTS vw_SpeedRunChart;
+
+CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunChart AS
+
+    SELECT rn.ID,
+           rn.GameID,
+           rn.CategoryID,
+           c.CategoryTypeID,
+           rn.LevelID,
+           SubCategoryVariableValueIDs.Value AS SubCategoryVariableValueIDs,
+           rn.PrimaryTime,
+           rn.`Rank`,
+           Players.Value AS Players,
+           Guests.Value AS Guests,           
+           rn.DateSubmitted
+    FROM tbl_SpeedRun rn
+    JOIN tbl_Category c ON c.ID = rn.CategoryID
+  	LEFT JOIN LATERAL (
+		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) ORDER BY rv.ID SEPARATOR ',') Value
+	    FROM tbl_SpeedRun_VariableValue rv
+	    JOIN tbl_Variable v ON v.ID = rv.VariableID AND v.IsSubCategory = 1
+	    WHERE rv.SpeedRunID = rn.ID
+	) SubCategoryVariableValueIDs ON TRUE 		
+	LEFT JOIN LATERAL (
+		SELECT GROUP_CONCAT(CONCAT(CONVERT(u.ID,CHAR), '¦', u.Name  , '¦', u.Abbr) SEPARATOR '^^') Value
+	    FROM tbl_SpeedRun_Player rp  
+		JOIN tbl_User u ON u.ID = rp.UserID
+		WHERE rp.SpeedRunID = rn.ID
+	) Players ON TRUE
+	LEFT JOIN LATERAL (
+		SELECT GROUP_CONCAT(CONCAT(CONVERT(g.ID,CHAR), '¦', g.Name  , '¦', g.Abbr) SEPARATOR '^^') Value
+	    FROM tbl_SpeedRun_Guest rg
+		JOIN tbl_Guest g ON g.ID = rg.GuestID
+		WHERE rg.SpeedRunID = rn.ID
+	) Guests ON TRUE;	
+
+-- vw_SpeedRunVideo
+DROP VIEW IF EXISTS vw_SpeedRunVideo;
+
+CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunVideo AS
+
+	SELECT dn.ID AS SpeedRunID, dn1.ID AS SpeedRunVideoID, dn1.VideoLinkUrl, dn1.ThumbnailLinkUrl, dn1.EmbeddedVideoLinkUrl, dn.VerifyDate, dn2.ViewCount, dn2.ChannelCode,
+	CASE WHEN dn2.SpeedRunVideoID IS NOT NULL THEN 1 ELSE 0 END AS HasData
+	FROM tbl_speedrun dn
+	JOIN tbl_speedrun_video dn1 ON dn1.SpeedRunID = dn.ID
+	LEFT JOIN tbl_speedrun_video_detail dn2 ON dn2.SpeedRunVideoID = dn1.ID 
+	
 -- vw_User
 DROP VIEW IF EXISTS vw_User;
 
@@ -1415,6 +1571,7 @@ DROP PROCEDURE IF EXISTS GetPersonalBestsByUserID;
 DELIMITER $$
 CREATE DEFINER=`root`@`localhost` PROCEDURE GetPersonalBestsByUserID(
 	IN GameID INT,
+	IN CategoryTypeID INT,	
 	IN CategoryID INT,
 	IN LevelID INT,
 	IN UserID INT
@@ -1428,7 +1585,9 @@ BEGIN
 	rn.ID,
 	rn.GameID, 
 	rn.CategoryID,
+	rn.CategoryName,
 	rn.LevelID,
+	rn.LevelName,	
 	rn.PlatformID,
 	rn.PlatformName,
 	rn.SubCategoryVariableValueIDs,
@@ -1440,17 +1599,21 @@ BEGIN
 	rn.Comment,
 	rn.DateSubmitted,
 	rn.VerifyDate
-	FROM vw_SpeedRunGridUser rn
+	FROM vw_WorldRecordGridUser rn
 	WHERE rn.GameID = GameID
-    AND rn.CategoryID = CategoryID
-	AND COALESCE(rn.LevelID, '' ) = COALESCE(LevelID, '')
+    AND rn.CategoryTypeID = CategoryTypeID
+	AND ((CategoryID IS NULL) OR (rn.CategoryID = CategoryID))    
+	AND ((LevelID IS NULL) OR (rn.LevelID = LevelID))
     AND rn.UserID = UserID;
    
 	SELECT rn.ID,
 	rn.GameID,
 	rn.CategoryID,
+	rn.CategoryName,
 	rn.LevelID,
+	rn.LevelName,	
 	rn.PlatformID,
+	rn.PlatformName,
 	rn.SubCategoryVariableValueIDs,
 	rn.VariableValues,
 	rn.Players,
@@ -1462,9 +1625,8 @@ BEGIN
 	rn.VerifyDate
 	FROM ResultsRaw rn
 	WHERE rn.RowNum = 1
-	ORDER BY rn.ID;
-END $$
-DELIMITER ;
+	ORDER BY rn.CategoryID, rn.LevelID, rn.SubCategoryVariableValueIDs;
+END
 
 -- GetSpeedRunsByUserID
 DROP PROCEDURE IF EXISTS GetSpeedRunsByUserID;
@@ -2440,11 +2602,13 @@ BEGIN
 	CREATE INDEX IDX_tbl_SpeedRun_Player_SpeedRunID_UserID ON tbl_SpeedRun_Player (SpeedRunID, UserID);
 	CREATE INDEX IDX_tbl_SpeedRun_Guest_SpeedRunID_GuestID ON tbl_SpeedRun_Guest (SpeedRunID, GuestID);
 	-- vw_SpeedRunSummary
-	CREATE INDEX IDX_tbl_SpeedRun_Video_SpeedRunID_PlusInclude ON tbl_SpeedRun_Video (SpeedRunID, EmbeddedVideoLinkUrl, ThumbnailLinkUrl);
+	CREATE INDEX IDX_tbl_SpeedRun_Video_SpeedRunID_PlusInclude ON tbl_SpeedRun_Video (SpeedRunID, EmbeddedVideoLinkUrl, ThumbnailLinkUrl, VideoLinkUrl);
 	CREATE INDEX IDX_tbl_SpeedRun_Video_Detail_SpeedRunID ON tbl_SpeedRun_Video_Detail (SpeedRunID);
 	CREATE INDEX IDX_tbl_SpeedRun_Video_Detail_ChannelCode_SpeedRunID ON tbl_SpeedRun_Video_Detail (ChannelCode, SpeedRunID);
 	CREATE INDEX IDX_tbl_Category_CategoryTypeID ON tbl_Category (CategoryTypeID);
 	CREATE INDEX IDX_tbl_SpeedRun_IsExcludeFromSpeedRunList_Rank ON tbl_SpeedRun (IsExcludeFromSpeedRunList, `Rank`);
+	-- vw_SpeedRunVideo
+	CREATE INDEX IDX_tbl_SpeedRun_VerifyDate ON tbl_SpeedRun (VerifyDate);
 	-- vw_User
 	CREATE INDEX IDX_tbl_SpeedRun_Player_UserID ON tbl_SpeedRun_Player (UserID);
 	-- tbl_speedrun_speedruncomid
