@@ -28,11 +28,11 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_User AS
 			SELECT sr.GameID, sr.CategoryID, sr.LevelID, SubCategoryVariableValueIDs.Value
 			FROM tbl_SpeedRun_Player sp
 			JOIN tbl_SpeedRun sr ON sr.ID=sp.SpeedRunID
-			LEFT JOIN LATERAL (
-				SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) SEPARATOR ',') Value
-		        FROM tbl_SpeedRun_VariableValue rv
-		        JOIN tbl_Variable v ON v.ID=rv.VariableID AND v.IsSubCategory = 1
-		        WHERE rv.SpeedRunID = sr.ID     
+		  	LEFT JOIN LATERAL (
+				SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) ORDER BY rv.ID SEPARATOR ',') Value
+			    FROM tbl_SpeedRun_VariableValue rv
+			    JOIN tbl_Variable v ON v.ID = rv.VariableID AND v.IsSubCategory = 1
+			    WHERE rv.SpeedRunID = sr.ID
 			) SubCategoryVariableValueIDs ON TRUE  
 			WHERE sp.UserID = u.ID
 			GROUP BY sr.GameID, sr.CategoryID, sr.LevelID, SubCategoryVariableValueIDs.Value

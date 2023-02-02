@@ -24,12 +24,12 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGridUser AS
     JOIN tbl_SpeedRun_Player rp ON rp.SpeedRunID = rn.ID
    	LEFT JOIN tbl_SpeedRun_Comment rc ON rc.SpeedRunID = rn.ID
    	LEFT JOIN tbl_Platform p ON p.ID = rs.PlatformID
-   	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) SEPARATOR ',') Value
-        FROM tbl_SpeedRun_VariableValue rv
-        JOIN tbl_Variable v ON v.ID=rv.VariableID AND v.IsSubCategory = 1
-        WHERE rv.SpeedRunID = rn.ID     
-	) SubCategoryVariableValueIDs ON TRUE      	
+  	LEFT JOIN LATERAL (
+		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) ORDER BY rv.ID SEPARATOR ',') Value
+	    FROM tbl_SpeedRun_VariableValue rv
+	    JOIN tbl_Variable v ON v.ID = rv.VariableID AND v.IsSubCategory = 1
+	    WHERE rv.SpeedRunID = rn.ID
+	) SubCategoryVariableValueIDs ON TRUE     	
 	LEFT JOIN LATERAL (
 		SELECT GROUP_CONCAT(CONCAT(CONVERT(rv.VariableID,CHAR), '|', CONVERT(rv.VariableValueID,CHAR)) SEPARATOR ',') Value
 	    FROM tbl_SpeedRun_VariableValue rv
@@ -46,4 +46,4 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGridUser AS
 	    FROM tbl_SpeedRun_Guest rg
 		JOIN tbl_Guest g ON g.ID = rg.GuestID
 		WHERE rg.SpeedRunID = rn.ID
-	) Guests ON TRUE;            
+	) Guests ON TRUE;

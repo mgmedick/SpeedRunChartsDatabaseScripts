@@ -893,11 +893,11 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGrid AS
    	JOIN tbl_SpeedRun_System rs ON rs.SpeedRunID = rn.ID 
    	LEFT JOIN tbl_SpeedRun_Comment rc ON rc.SpeedRunID = rn.ID
    	LEFT JOIN tbl_Platform p ON p.ID = rs.PlatformID
-	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) SEPARATOR ',') Value
-        FROM tbl_SpeedRun_VariableValue rv
-        JOIN tbl_Variable v ON v.ID=rv.VariableID AND v.IsSubCategory = 1
-        WHERE rv.SpeedRunID = rn.ID     
+  	LEFT JOIN LATERAL (
+		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) ORDER BY rv.ID SEPARATOR ',') Value
+	    FROM tbl_SpeedRun_VariableValue rv
+	    JOIN tbl_Variable v ON v.ID = rv.VariableID AND v.IsSubCategory = 1
+	    WHERE rv.SpeedRunID = rn.ID
 	) SubCategoryVariableValueIDs ON TRUE      	
 	LEFT JOIN LATERAL (
 		SELECT GROUP_CONCAT(CONCAT(CONVERT(rv.VariableID,CHAR), '|', CONVERT(rv.VariableValueID,CHAR)) SEPARATOR ',') Value
@@ -929,11 +929,11 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGridTab AS
            SubCategoryVariableValueIDs.Value AS SubCategoryVariableValueIDs,
            rn.`Rank`
     FROM tbl_SpeedRun rn
-	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) SEPARATOR ',') Value
-        FROM tbl_SpeedRun_VariableValue rv
-        JOIN tbl_Variable v ON v.ID=rv.VariableID AND v.IsSubCategory = 1
-        WHERE rv.SpeedRunID = rn.ID     
+  	LEFT JOIN LATERAL (
+		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) ORDER BY rv.ID SEPARATOR ',') Value
+	    FROM tbl_SpeedRun_VariableValue rv
+	    JOIN tbl_Variable v ON v.ID = rv.VariableID AND v.IsSubCategory = 1
+	    WHERE rv.SpeedRunID = rn.ID
 	) SubCategoryVariableValueIDs ON TRUE;
 
 -- vw_SpeedRunGridTabUser
@@ -977,12 +977,12 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGridUser AS
     JOIN tbl_SpeedRun_Player rp ON rp.SpeedRunID = rn.ID
    	LEFT JOIN tbl_SpeedRun_Comment rc ON rc.SpeedRunID = rn.ID
    	LEFT JOIN tbl_Platform p ON p.ID = rs.PlatformID
-   	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) SEPARATOR ',') Value
-        FROM tbl_SpeedRun_VariableValue rv
-        JOIN tbl_Variable v ON v.ID=rv.VariableID AND v.IsSubCategory = 1
-        WHERE rv.SpeedRunID = rn.ID     
-	) SubCategoryVariableValueIDs ON TRUE      	
+  	LEFT JOIN LATERAL (
+		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) ORDER BY rv.ID SEPARATOR ',') Value
+	    FROM tbl_SpeedRun_VariableValue rv
+	    JOIN tbl_Variable v ON v.ID = rv.VariableID AND v.IsSubCategory = 1
+	    WHERE rv.SpeedRunID = rn.ID
+	) SubCategoryVariableValueIDs ON TRUE     	
 	LEFT JOIN LATERAL (
 		SELECT GROUP_CONCAT(CONCAT(CONVERT(rv.VariableID,CHAR), '|', CONVERT(rv.VariableValueID,CHAR)) SEPARATOR ',') Value
 	    FROM tbl_SpeedRun_VariableValue rv
@@ -1030,12 +1030,12 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_WorldRecordGrid AS
     LEFT JOIN tbl_Level l ON l.ID = rn.LevelID    
    	LEFT JOIN tbl_SpeedRun_Comment rc ON rc.SpeedRunID = rn.ID
    	LEFT JOIN tbl_Platform p ON p.ID = rs.PlatformID
-   	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) SEPARATOR ',') Value
-        FROM tbl_SpeedRun_VariableValue rv
-        JOIN tbl_Variable v ON v.ID=rv.VariableID AND v.IsSubCategory = 1
-        WHERE rv.SpeedRunID = rn.ID     
-	) SubCategoryVariableValueIDs ON TRUE      	
+  	LEFT JOIN LATERAL (
+		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) ORDER BY rv.ID SEPARATOR ',') Value
+	    FROM tbl_SpeedRun_VariableValue rv
+	    JOIN tbl_Variable v ON v.ID = rv.VariableID AND v.IsSubCategory = 1
+	    WHERE rv.SpeedRunID = rn.ID
+	) SubCategoryVariableValueIDs ON TRUE    	
 	LEFT JOIN LATERAL (
 		SELECT GROUP_CONCAT(CONCAT(CONVERT(rv.VariableID,CHAR), '|', CONVERT(rv.VariableValueID,CHAR)) SEPARATOR ',') Value
 	    FROM tbl_SpeedRun_VariableValue rv
@@ -1085,11 +1085,11 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_WorldRecordGridUser AS
     LEFT JOIN tbl_Level l ON l.ID = rn.LevelID    
    	LEFT JOIN tbl_SpeedRun_Comment rc ON rc.SpeedRunID = rn.ID
    	LEFT JOIN tbl_Platform p ON p.ID = rs.PlatformID
-   	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) SEPARATOR ',') Value
-        FROM tbl_SpeedRun_VariableValue rv
-        JOIN tbl_Variable v ON v.ID=rv.VariableID AND v.IsSubCategory = 1
-        WHERE rv.SpeedRunID = rn.ID     
+  	LEFT JOIN LATERAL (
+		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) ORDER BY rv.ID SEPARATOR ',') Value
+	    FROM tbl_SpeedRun_VariableValue rv
+	    JOIN tbl_Variable v ON v.ID = rv.VariableID AND v.IsSubCategory = 1
+	    WHERE rv.SpeedRunID = rn.ID
 	) SubCategoryVariableValueIDs ON TRUE      	
 	LEFT JOIN LATERAL (
 		SELECT GROUP_CONCAT(CONCAT(CONVERT(rv.VariableID,CHAR), '|', CONVERT(rv.VariableValueID,CHAR)) SEPARATOR ',') Value
@@ -1278,12 +1278,12 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_User AS
 			SELECT sr.GameID, sr.CategoryID, sr.LevelID, SubCategoryVariableValueIDs.Value
 			FROM tbl_SpeedRun_Player sp
 			JOIN tbl_SpeedRun sr ON sr.ID=sp.SpeedRunID
-			LEFT JOIN LATERAL (
-				SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) SEPARATOR ',') Value
-		        FROM tbl_SpeedRun_VariableValue rv
-		        JOIN tbl_Variable v ON v.ID=rv.VariableID AND v.IsSubCategory = 1
-		        WHERE rv.SpeedRunID = sr.ID     
-			) SubCategoryVariableValueIDs ON TRUE  
+		  	LEFT JOIN LATERAL (
+				SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) ORDER BY rv.ID SEPARATOR ',') Value
+			    FROM tbl_SpeedRun_VariableValue rv
+			    JOIN tbl_Variable v ON v.ID = rv.VariableID AND v.IsSubCategory = 1
+			    WHERE rv.SpeedRunID = sr.ID
+			) SubCategoryVariableValueIDs ON TRUE   
 			WHERE sp.UserID = u.ID
 			GROUP BY sr.GameID, sr.CategoryID, sr.LevelID, SubCategoryVariableValueIDs.Value
 		) SubQuery
