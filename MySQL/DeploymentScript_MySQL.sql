@@ -685,7 +685,7 @@ DROP VIEW IF EXISTS vw_Game;
 CREATE DEFINER=`root`@`localhost` VIEW vw_Game AS
 
     SELECT g.ID, g.Name, g.Abbr, gl.CoverImagePath AS CoverImageUrl, g.YearOfRelease, COALESCE(g.IsChanged, 0) AS IsChanged, gr.ShowMilliseconds, CategoryTypes.Value AS CategoryTypes, Categories.Value AS Categories, Levels.Value AS Levels,
-        Variables.Value AS Variables, VariableValues.Value AS VariableValues, Platforms.Value AS Platforms, Moderators.Value AS Moderators, gl.SpeedRunComUrl         
+        Variables.Value AS Variables, VariableValues.Value AS VariableValues, Platforms.Value AS Platforms, Moderators.Value AS Moderators, gl.SpeedRunComUrl        
     FROM tbl_Game g
     JOIN tbl_Game_Link gl ON gl.GameID = g.ID
     JOIN tbl_Game_Ruleset gr ON gr.GameID = g.ID
@@ -3020,6 +3020,28 @@ BEGIN
 	DEALLOCATE PREPARE `sql`;
 	
 	set @show_tables = null, @optimize = null, @tables_like = null;
+END $$
+DELIMITER ;
+
+-- ImportKillOtherProcesses
+DROP PROCEDURE IF EXISTS ImportKillOtherProcesses;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE ImportKillOtherProcesses()
+BEGIN
+	SET @currentprocessid = (SELECT connection_id());
+	SET @kill_processes = (SELECT GROUP_CONCAT(stat SEPARATOR ' ') FROM (SELECT CONCAT('KILL ', ID ,';') AS stat FROM information_schema.processlist WHERE USER = 'root' AND INFO LIKE '%vw_SpeedRunSummary%' AND ID <> @currentprocessid) AS stats);
+
+	PREPARE `sql` FROM @kill_processes;
+	EXECUTE `sql`;
+	DEALLOCATE PREPARE `sql`;
+	
+	SET @optimize := concat('ANALYZE TABLE ', @optimize);
+	PREPARE `sql` FROM @optimize;
+	EXECUTE `sql`;
+	DEALLOCATE PREPARE `sql`;
+	
+	SET @kill_processes = NULL;
 END $$
 DELIMITER ;
 
