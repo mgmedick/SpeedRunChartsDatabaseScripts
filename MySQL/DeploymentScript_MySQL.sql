@@ -3030,7 +3030,7 @@ DELIMITER $$
 CREATE DEFINER=`root`@`localhost` PROCEDURE ImportKillOtherProcesses()
 BEGIN
 	SET @currentprocessid = (SELECT connection_id());
-	SET @kill_processes = (SELECT GROUP_CONCAT(stat SEPARATOR ' ') FROM (SELECT CONCAT('KILL ', ID ,';') AS stat FROM information_schema.processlist WHERE USER = 'root' AND INFO LIKE '%vw_SpeedRunSummary%' AND ID <> @currentprocessid) AS stats);
+	SET @kill_processes = (SELECT GROUP_CONCAT(stat SEPARATOR ' ') FROM (SELECT CONCAT('KILL ', ID ,';') AS stat FROM information_schema.processlist WHERE USER = 'root' AND INFO LIKE '%FROM vw_SpeedRunSummary%' AND ID <> @currentprocessid) AS stats);
 
 	PREPARE `sql` FROM @kill_processes;
 	EXECUTE `sql`;
