@@ -1,26 +1,29 @@
--- ImportKillOtherProcesses
 DROP PROCEDURE IF EXISTS ImportKillOtherProcesses;
 
 DELIMITER $$
-CREATE DEFINER=`root`@`localhost` PROCEDURE ImportKillOtherProcesses()
+
+CREATE PROCEDURE ImportKillOtherProcesses()
 BEGIN
-	SET @currentprocessid = (SELECT connection_id());
-	SET @kill_processes = (SELECT GROUP_CONCAT(stat SEPARATOR ' ') FROM (SELECT CONCAT('KILL ', ID ,';') AS stat FROM information_schema.processlist WHERE USER = 'root' AND INFO LIKE '%FROM vw_SpeedRunSummary%' AND ID <> @currentprocessid) AS stats);
+  DECLARE finished INT DEFAULT 0;
+  DECLARE proc_id INT;
+  DECLARE proc_id_cursor CURSOR FOR SELECT ID FROM information_schema.processlist WHERE USER = 'root' AND INFO LIKE '%FROM vw_SpeedRunSummary%';
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
 
-	PREPARE `sql` FROM @kill_processes;
-	EXECUTE `sql`;
-	DEALLOCATE PREPARE `sql`;
-	
-	SET @optimize := concat('ANALYZE TABLE ', @optimize);
-	PREPARE `sql` FROM @optimize;
-	EXECUTE `sql`;
-	DEALLOCATE PREPARE `sql`;
-	
-	SET @kill_processes = NULL;
-END $$
+  OPEN proc_id_cursor;
+  proc_id_cursor_loop: LOOP
+    FETCH proc_id_cursor INTO proc_id;
+
+    IF finished = 1 THEN 
+      LEAVE proc_id_cursor_loop;
+    END IF;
+
+    IF proc_id <> CONNECTION_ID() THEN
+      KILL proc_id;
+    END IF;
+
+  END LOOP proc_id_cursor_loop;
+  CLOSE proc_id_cursor;
+END$$
+
 DELIMITER ;
-
-
-
-
 

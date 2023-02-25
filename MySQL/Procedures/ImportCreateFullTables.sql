@@ -71,6 +71,20 @@ BEGIN
 	    Location varchar (100) NULL,
 	    PRIMARY KEY (UserID)
 	);
+
+	-- tbl_User_NameStyle_Full
+	DROP TABLE IF EXISTS tbl_User_NameStyle_Full;
+	
+	CREATE TABLE tbl_User_NameStyle_Full
+	( 
+	    UserID int NOT NULL,
+	    IsGradient bit NOT NULL,
+	    ColorLight VARCHAR(10) NULL,
+	    ColorDark VARCHAR(10) NULL,    
+	    ColorToLight VARCHAR(10) NULL,
+	    ColorToDark VARCHAR(10) NULL,    
+	    PRIMARY KEY (UserID)
+	);
 			
 	-- tbl_User_Link_Full
 	DROP TABLE IF EXISTS tbl_User_Link_Full;

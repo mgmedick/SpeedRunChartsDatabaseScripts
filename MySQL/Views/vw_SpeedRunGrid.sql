@@ -34,13 +34,14 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGrid AS
 	    WHERE rv.SpeedRunID = rn.ID   
 	) VariableValues ON TRUE     
 	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONCAT(CONVERT(u.ID,CHAR), '¦', u.Name  , '¦', u.Abbr) SEPARATOR '^^') Value
+		SELECT GROUP_CONCAT(CONCAT(CONVERT(u.ID,CHAR), '¦', u.Name, '¦', u.Abbr, '¦', COALESCE(nt.ColorLight,''), '¦', COALESCE(nt.ColorToLight,''), '¦', COALESCE(nt.ColorDark,''), '¦', COALESCE(nt.ColorToDark,'')) SEPARATOR '^^') Value
 	    FROM tbl_SpeedRun_Player rp  
 		JOIN tbl_User u ON u.ID = rp.UserID
+		LEFT JOIN tbl_User_NameStyle nt ON nt.UserID = u.ID
 		WHERE rp.SpeedRunID = rn.ID
 	) Players ON TRUE    	
 	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONCAT(CONVERT(g.ID,CHAR), '¦', g.Name  , '¦', g.Abbr) SEPARATOR '^^') Value
+		SELECT GROUP_CONCAT(CONCAT(CONVERT(g.ID,CHAR), '¦', g.Name, '¦', g.Abbr) SEPARATOR '^^') Value
 	    FROM tbl_SpeedRun_Guest rg
 		JOIN tbl_Guest g ON g.ID = rg.GuestID
 		WHERE rg.SpeedRunID = rn.ID

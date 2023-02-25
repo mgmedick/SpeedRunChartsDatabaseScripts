@@ -56,6 +56,20 @@ CREATE TABLE tbl_User_Location
     PRIMARY KEY (UserID)
 );
 
+-- tbl_User_NameStyle
+DROP TABLE IF EXISTS tbl_User_NameStyle;
+
+CREATE TABLE tbl_User_NameStyle
+( 
+    UserID int NOT NULL,
+    IsGradient bit NOT NULL,
+    ColorLight VARCHAR(10) NULL,
+    ColorDark VARCHAR(10) NULL,    
+    ColorToLight VARCHAR(10) NULL,
+    ColorToDark VARCHAR(10) NULL,    
+    PRIMARY KEY (UserID)
+);
+
 -- tbl_User_Link
 DROP TABLE IF EXISTS tbl_User_Link;
 
@@ -905,13 +919,14 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGrid AS
 	    WHERE rv.SpeedRunID = rn.ID   
 	) VariableValues ON TRUE     
 	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONCAT(CONVERT(u.ID,CHAR), '¦', u.Name  , '¦', u.Abbr) SEPARATOR '^^') Value
+		SELECT GROUP_CONCAT(CONCAT(CONVERT(u.ID,CHAR), '¦', u.Name, '¦', u.Abbr, '¦', COALESCE(nt.ColorLight,''), '¦', COALESCE(nt.ColorToLight,''), '¦', COALESCE(nt.ColorDark,''), '¦', COALESCE(nt.ColorToDark,'')) SEPARATOR '^^') Value
 	    FROM tbl_SpeedRun_Player rp  
 		JOIN tbl_User u ON u.ID = rp.UserID
+		LEFT JOIN tbl_User_NameStyle nt ON nt.UserID = u.ID
 		WHERE rp.SpeedRunID = rn.ID
 	) Players ON TRUE    	
 	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONCAT(CONVERT(g.ID,CHAR), '¦', g.Name  , '¦', g.Abbr) SEPARATOR '^^') Value
+		SELECT GROUP_CONCAT(CONCAT(CONVERT(g.ID,CHAR), '¦', g.Name, '¦', g.Abbr) SEPARATOR '^^') Value
 	    FROM tbl_SpeedRun_Guest rg
 		JOIN tbl_Guest g ON g.ID = rg.GuestID
 		WHERE rg.SpeedRunID = rn.ID
@@ -960,46 +975,20 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGridUser AS
            rn.GameID,
            rn.CategoryID,
            rn.LevelID,
-           p.ID AS PlatformID,
-           p.Name AS PlatformName,
-           SubCategoryVariableValueIDs.Value AS SubCategoryVariableValueIDs,
-           VariableValues.Value AS VariableValues,
-           Players.Value AS Players,
-		   Guests.Value AS Guests,
+           rn.PlatformID,
+           rn.PlatformName,
+           rn.SubCategoryVariableValueIDs,
+           rn.VariableValues,
+           rn.Players,
+		   rn.Guests,
            rn.`Rank`,
            rn.PrimaryTime,
-           rc.Comment,
+           rn.Comment,
            rn.DateSubmitted,
            rn.VerifyDate,
            rp.UserID
-    FROM tbl_SpeedRun rn
-   	JOIN tbl_SpeedRun_System rs ON rs.SpeedRunID = rn.ID
-    JOIN tbl_SpeedRun_Player rp ON rp.SpeedRunID = rn.ID
-   	LEFT JOIN tbl_SpeedRun_Comment rc ON rc.SpeedRunID = rn.ID
-   	LEFT JOIN tbl_Platform p ON p.ID = rs.PlatformID
-  	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) ORDER BY rv.ID SEPARATOR ',') Value
-	    FROM tbl_SpeedRun_VariableValue rv
-	    JOIN tbl_Variable v ON v.ID = rv.VariableID AND v.IsSubCategory = 1
-	    WHERE rv.SpeedRunID = rn.ID
-	) SubCategoryVariableValueIDs ON TRUE     	
-	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONCAT(CONVERT(rv.VariableID,CHAR), '|', CONVERT(rv.VariableValueID,CHAR)) SEPARATOR ',') Value
-	    FROM tbl_SpeedRun_VariableValue rv
-	    WHERE rv.SpeedRunID = rn.ID   
-	) VariableValues ON TRUE     
-	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONCAT(CONVERT(u.ID,CHAR), '¦', u.Name  , '¦', u.Abbr) SEPARATOR '^^') Value
-	    FROM tbl_SpeedRun_Player rp  
-		JOIN tbl_User u ON u.ID = rp.UserID
-		WHERE rp.SpeedRunID = rn.ID
-	) Players ON TRUE    	
-	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONCAT(CONVERT(g.ID,CHAR), '¦', g.Name  , '¦', g.Abbr) SEPARATOR '^^') Value
-	    FROM tbl_SpeedRun_Guest rg
-		JOIN tbl_Guest g ON g.ID = rg.GuestID
-		WHERE rg.SpeedRunID = rn.ID
-	) Guests ON TRUE;
+    FROM vw_SpeedRunGrid rn
+    JOIN tbl_SpeedRun_Player rp ON rp.SpeedRunID = rn.ID;
 
 -- vw_WorldRecordGrid
 DROP VIEW IF EXISTS vw_WorldRecordGrid;
@@ -1008,52 +997,26 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_WorldRecordGrid AS
 
 	SELECT rn.ID,
            rn.GameID,
-           c.ID AS CategoryID,
+           rn.CategoryID,
            c.Name AS CategoryName,
            c.CategoryTypeID,           
-           l.ID AS LevelID,
+           rn.LevelID,
            l.Name AS LevelName,           
-           p.ID AS PlatformID,
-           p.Name AS PlatformName,
-           SubCategoryVariableValueIDs.Value AS SubCategoryVariableValueIDs,
-           VariableValues.Value AS VariableValues,
-           Players.Value AS Players,
-		   Guests.Value AS Guests,
+           rn.PlatformID,
+           rn.PlatformName,
+           rn.SubCategoryVariableValueIDs,
+           rn.VariableValues,
+           rn.Players,
+		   rn.Guests,
            rn.`Rank`,
            rn.PrimaryTime,
-           rc.Comment,
+           rn.Comment,
            rn.DateSubmitted,
            rn.VerifyDate
-    FROM tbl_SpeedRun rn
-   	JOIN tbl_SpeedRun_System rs ON rs.SpeedRunID = rn.ID
+    FROM vw_SpeedRunGrid rn
     JOIN tbl_Category c ON c.ID = rn.CategoryID
-    LEFT JOIN tbl_Level l ON l.ID = rn.LevelID    
-   	LEFT JOIN tbl_SpeedRun_Comment rc ON rc.SpeedRunID = rn.ID
-   	LEFT JOIN tbl_Platform p ON p.ID = rs.PlatformID
-  	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) ORDER BY rv.ID SEPARATOR ',') Value
-	    FROM tbl_SpeedRun_VariableValue rv
-	    JOIN tbl_Variable v ON v.ID = rv.VariableID AND v.IsSubCategory = 1
-	    WHERE rv.SpeedRunID = rn.ID
-	) SubCategoryVariableValueIDs ON TRUE    	
-	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONCAT(CONVERT(rv.VariableID,CHAR), '|', CONVERT(rv.VariableValueID,CHAR)) SEPARATOR ',') Value
-	    FROM tbl_SpeedRun_VariableValue rv
-	    WHERE rv.SpeedRunID = rn.ID   
-	) VariableValues ON TRUE     
-	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONCAT(CONVERT(u.ID,CHAR), '¦', u.Name  , '¦', u.Abbr) SEPARATOR '^^') Value
-	    FROM tbl_SpeedRun_Player rp  
-		JOIN tbl_User u ON u.ID = rp.UserID
-		WHERE rp.SpeedRunID = rn.ID
-	) Players ON TRUE    	
-	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONCAT(CONVERT(g.ID,CHAR), '¦', g.Name  , '¦', g.Abbr) SEPARATOR '^^') Value
-	    FROM tbl_SpeedRun_Guest rg
-		JOIN tbl_Guest g ON g.ID = rg.GuestID
-		WHERE rg.SpeedRunID = rn.ID
-	) Guests ON TRUE;
-
+    LEFT JOIN tbl_Level l ON l.ID = rn.LevelID;
+	
 -- vw_WorldRecordGridUser
 DROP VIEW IF EXISTS vw_WorldRecordGridUser;
 
@@ -1061,53 +1024,25 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_WorldRecordGridUser AS
 
 	SELECT rn.ID,
            rn.GameID,
-           c.ID AS CategoryID,
-           c.Name AS CategoryName,
-           c.CategoryTypeID,           
-           l.ID AS LevelID,
-           l.Name AS LevelName,           
-           p.ID AS PlatformID,
-           p.Name AS PlatformName,
-           SubCategoryVariableValueIDs.Value AS SubCategoryVariableValueIDs,
-           VariableValues.Value AS VariableValues,
-           Players.Value AS Players,
-		   Guests.Value AS Guests,
+           rn.CategoryID,
+           rn.CategoryName,
+           rn.CategoryTypeID,           
+           rn.LevelID,
+           rn.LevelName,           
+           rn.PlatformID,
+           rn.PlatformName,
+           rn.SubCategoryVariableValueIDs,
+           rn.VariableValues,
+           rn.Players,
+		   rn.Guests,
            rn.`Rank`,
            rn.PrimaryTime,
-           rc.Comment,
+           rn.Comment,
            rn.DateSubmitted,
            rn.VerifyDate,
            rp.UserID
-    FROM tbl_SpeedRun rn
-   	JOIN tbl_SpeedRun_System rs ON rs.SpeedRunID = rn.ID
-    JOIN tbl_SpeedRun_Player rp ON rp.SpeedRunID = rn.ID
-    JOIN tbl_Category c ON c.ID = rn.CategoryID
-    LEFT JOIN tbl_Level l ON l.ID = rn.LevelID    
-   	LEFT JOIN tbl_SpeedRun_Comment rc ON rc.SpeedRunID = rn.ID
-   	LEFT JOIN tbl_Platform p ON p.ID = rs.PlatformID
-  	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) ORDER BY rv.ID SEPARATOR ',') Value
-	    FROM tbl_SpeedRun_VariableValue rv
-	    JOIN tbl_Variable v ON v.ID = rv.VariableID AND v.IsSubCategory = 1
-	    WHERE rv.SpeedRunID = rn.ID
-	) SubCategoryVariableValueIDs ON TRUE      	
-	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONCAT(CONVERT(rv.VariableID,CHAR), '|', CONVERT(rv.VariableValueID,CHAR)) SEPARATOR ',') Value
-	    FROM tbl_SpeedRun_VariableValue rv
-	    WHERE rv.SpeedRunID = rn.ID   
-	) VariableValues ON TRUE     
-	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONCAT(CONVERT(u.ID,CHAR), '¦', u.Name  , '¦', u.Abbr) SEPARATOR '^^') Value
-	    FROM tbl_SpeedRun_Player rp  
-		JOIN tbl_User u ON u.ID = rp.UserID
-		WHERE rp.SpeedRunID = rn.ID
-	) Players ON TRUE    	
-	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONCAT(CONVERT(g.ID,CHAR), '¦', g.Name  , '¦', g.Abbr) SEPARATOR '^^') Value
-	    FROM tbl_SpeedRun_Guest rg
-		JOIN tbl_Guest g ON g.ID = rg.GuestID
-		WHERE rg.SpeedRunID = rn.ID
-	) Guests ON TRUE;
+    FROM vw_WorldRecordGrid rn
+    JOIN tbl_SpeedRun_Player rp ON rp.SpeedRunID = rn.ID;
 	
 -- vw_SpeedRunSummary
 DROP VIEW IF EXISTS vw_SpeedRunSummary;
@@ -1159,9 +1094,10 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunSummary AS
 	    WHERE rv.SpeedRunID = rn.ID
 	) SubCategoryVariableValues ON TRUE    
  	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONCAT(CONVERT(u.ID,CHAR), '¦', u.Name  , '¦', COALESCE (u.Abbr,'')) ORDER BY rp.ID SEPARATOR '^^') Value
+		SELECT GROUP_CONCAT(CONCAT(CONVERT(u.ID,CHAR), '¦', u.Name, '¦', u.Abbr, '¦', COALESCE(nt.ColorLight,''), '¦', COALESCE(nt.ColorToLight,''), '¦', COALESCE(nt.ColorDark,''), '¦', COALESCE(nt.ColorToDark,'')) SEPARATOR '^^') Value
 	    FROM tbl_SpeedRun_Player rp  
 		JOIN tbl_User u ON u.ID = rp.UserID
+		LEFT JOIN tbl_User_NameStyle nt ON nt.UserID = u.ID
 		WHERE rp.SpeedRunID = rn.ID
 	) Players ON TRUE       
   	LEFT JOIN LATERAL (
@@ -1319,8 +1255,13 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_UserSpeedRunCom AS
 
     SELECT u.ID,
            uc.SpeedRunComID,  
-           u.Name,
+           u.Name,            
 		   lc.Location,
+           nt.IsGradient,
+           nt.ColorLight,
+           nt.ColorDark,   
+           nt.ColorToLight,
+           nt.ColorToDark,  		   
            ul.SpeedRunComUrl,      
            ul.ProfileImageUrl,      
            ul.TwitchProfileUrl,      
@@ -1332,7 +1273,8 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_UserSpeedRunCom AS
     FROM tbl_User u
     JOIN tbl_User_SpeedRunComID uc ON uc.UserID = u.ID
     JOIN tbl_User_Link ul ON ul.UserID = u.ID
-    LEFT JOIN tbl_User_Location lc ON lc.UserID = u.ID;
+    LEFT JOIN tbl_User_Location lc ON lc.UserID = u.ID
+    LEFT JOIN tbl_User_NameStyle nt ON nt.UserID = u.ID;
   
 /*********************************************/
 -- create/alter procs
@@ -1628,48 +1570,6 @@ BEGIN
 	ORDER BY rn.CategoryID, rn.LevelID, rn.SubCategoryVariableValueIDs;
 END
 
--- GetSpeedRunsByUserID
-DROP PROCEDURE IF EXISTS GetSpeedRunsByUserID;
-
-DELIMITER $$
-CREATE DEFINER=`root`@`localhost` PROCEDURE GetSpeedRunsByUserID(
-	IN GameID INT,
-	IN CategoryID INT,
-	IN LevelID INT,
-	IN VariableValueIDs VARCHAR(8000),
-    IN UserID INT	
-)
-BEGIN	
-     SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
-    
-	 SELECT rn.ID,
-     rn.GameID,
-     -- rn.CategoryTypeID,
-     rn.CategoryID,
-     rn.LevelID,
-     rn.PlatformID,
-     rn.PlatformName,
-	 rn.SubCategoryVariableValueIDs,
-     -- rn.Variables,
-     rn.VariableValues,
-     rn.Players,
-     rn.Guests,
-     -- rn.IsEmulated,
-     rn.`Rank`,
-     rn.PrimaryTime,
-     rn.Comment,
-     rn.DateSubmitted,
-     rn.VerifyDate 
-	 FROM vw_SpeedRunGrid rn
-	 JOIN tbl_SpeedRun_Player rp ON rp.SpeedRunID = rn.ID AND rp.UserID = UserID
-	 WHERE rn.GameID = GameID
-     AND rn.CategoryID = CategoryID
-     AND COALESCE(rn.LevelID,'') = COALESCE(LevelID,'')
-     AND COALESCE(rn.SubCategoryVariableValueIDs,'') = COALESCE(VariableValueIDs,'')
-	 ORDER BY rn.ID DESC;
-END $$
-DELIMITER ;
-
 -- ImportCreateFullTables
 DROP PROCEDURE IF EXISTS ImportCreateFullTables;
 
@@ -1741,6 +1641,20 @@ BEGIN
 	( 
 	    UserID int NOT NULL,
 	    Location varchar (100) NULL,
+	    PRIMARY KEY (UserID)
+	);
+
+	-- tbl_User_NameStyle_Full
+	DROP TABLE IF EXISTS tbl_User_NameStyle_Full;
+	
+	CREATE TABLE tbl_User_NameStyle_Full
+	( 
+	    UserID int NOT NULL,
+	    IsGradient bit NOT NULL,
+	    ColorLight VARCHAR(10) NULL,
+	    ColorDark VARCHAR(10) NULL,    
+	    ColorToLight VARCHAR(10) NULL,
+	    ColorToDark VARCHAR(10) NULL,    
 	    PRIMARY KEY (UserID)
 	);
 			
@@ -2511,6 +2425,7 @@ BEGIN
 	DROP TABLE tbl_User;
 	DROP TABLE tbl_User_SpeedRunComID;
 	DROP TABLE tbl_User_Location;
+	DROP TABLE tbl_User_NameStyle;
 	DROP TABLE tbl_User_Link;
     DROP TABLE tbl_Guest;
 	DROP TABLE tbl_Game;
@@ -2549,6 +2464,7 @@ BEGIN
 	ALTER TABLE tbl_User_Full RENAME tbl_User;
 	ALTER TABLE tbl_User_SpeedRunComID_Full RENAME tbl_User_SpeedRunComID;
 	ALTER TABLE tbl_User_Location_Full RENAME tbl_User_Location;
+	ALTER TABLE tbl_User_NameStyle_Full RENAME tbl_User_NameStyle;
 	ALTER TABLE tbl_User_Link_Full RENAME tbl_User_Link;
 	ALTER TABLE tbl_Guest_Full RENAME tbl_Guest;
 	ALTER TABLE tbl_Game_Full RENAME tbl_Game;
@@ -3027,22 +2943,30 @@ DELIMITER ;
 DROP PROCEDURE IF EXISTS ImportKillOtherProcesses;
 
 DELIMITER $$
-CREATE DEFINER=`root`@`localhost` PROCEDURE ImportKillOtherProcesses()
-BEGIN
-	SET @currentprocessid = (SELECT connection_id());
-	SET @kill_processes = (SELECT GROUP_CONCAT(stat SEPARATOR ' ') FROM (SELECT CONCAT('KILL ', ID ,';') AS stat FROM information_schema.processlist WHERE USER = 'root' AND INFO LIKE '%FROM vw_SpeedRunSummary%' AND ID <> @currentprocessid) AS stats);
 
-	PREPARE `sql` FROM @kill_processes;
-	EXECUTE `sql`;
-	DEALLOCATE PREPARE `sql`;
-	
-	SET @optimize := concat('ANALYZE TABLE ', @optimize);
-	PREPARE `sql` FROM @optimize;
-	EXECUTE `sql`;
-	DEALLOCATE PREPARE `sql`;
-	
-	SET @kill_processes = NULL;
-END $$
+CREATE PROCEDURE ImportKillOtherProcesses()
+BEGIN
+  DECLARE finished INT DEFAULT 0;
+  DECLARE proc_id INT;
+  DECLARE proc_id_cursor CURSOR FOR SELECT ID FROM information_schema.processlist WHERE USER = 'root' AND INFO LIKE '%FROM vw_SpeedRunSummary%';
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
+
+  OPEN proc_id_cursor;
+  proc_id_cursor_loop: LOOP
+    FETCH proc_id_cursor INTO proc_id;
+
+    IF finished = 1 THEN 
+      LEAVE proc_id_cursor_loop;
+    END IF;
+
+    IF proc_id <> CONNECTION_ID() THEN
+      KILL proc_id;
+    END IF;
+
+  END LOOP proc_id_cursor_loop;
+  CLOSE proc_id_cursor;
+END$$
+
 DELIMITER ;
 
 /*********************************************/

@@ -10,6 +10,7 @@ BEGIN
 	DROP TABLE tbl_User;
 	DROP TABLE tbl_User_SpeedRunComID;
 	DROP TABLE tbl_User_Location;
+	DROP TABLE tbl_User_NameStyle;
 	DROP TABLE tbl_User_Link;
     DROP TABLE tbl_Guest;
 	DROP TABLE tbl_Game;
@@ -48,6 +49,7 @@ BEGIN
 	ALTER TABLE tbl_User_Full RENAME tbl_User;
 	ALTER TABLE tbl_User_SpeedRunComID_Full RENAME tbl_User_SpeedRunComID;
 	ALTER TABLE tbl_User_Location_Full RENAME tbl_User_Location;
+	ALTER TABLE tbl_User_NameStyle_Full RENAME tbl_User_NameStyle;
 	ALTER TABLE tbl_User_Link_Full RENAME tbl_User_Link;
 	ALTER TABLE tbl_Guest_Full RENAME tbl_Guest;
 	ALTER TABLE tbl_Game_Full RENAME tbl_Game;
@@ -94,18 +96,20 @@ BEGIN
 	CREATE INDEX IDX_tbl_Game_Platform_GameID_PlatformID ON tbl_Game_Platform (GameID, PlatformID);
 	CREATE INDEX IDX_tbl_Game_Moderator_GameID_UserID ON tbl_Game_Moderator (GameID, UserID);
 	-- vw_SpeedRunGrid
-	CREATE INDEX IDX_tbl_SpeedRun_GameID_CategoryID_LevelID_Rank_VerifyDate ON tbl_SpeedRun (GameID, CategoryID, LevelID, `Rank`, VerifyDate);
+    CREATE INDEX IDX_tbl_SpeedRun_GameID_CategoryID_LevelID_Rank_VerifyDate ON tbl_SpeedRun (GameID, CategoryID, LevelID, `Rank`, VerifyDate);
 	CREATE INDEX IDX_tbl_SpeedRun_VariableValue_SpeedRunID_VariableValueID ON tbl_SpeedRun_VariableValue (SpeedRunID, VariableValueID, VariableID);
 	CREATE INDEX IDX_tbl_SpeedRun_VariableValue_SpeedRunID_VariableID ON tbl_SpeedRun_VariableValue (SpeedRunID, VariableID, VariableValueID);
 	CREATE INDEX IDX_tbl_Variable_IsSubCategory ON tbl_Variable (IsSubCategory);
 	CREATE INDEX IDX_tbl_SpeedRun_Player_SpeedRunID_UserID ON tbl_SpeedRun_Player (SpeedRunID, UserID);
 	CREATE INDEX IDX_tbl_SpeedRun_Guest_SpeedRunID_GuestID ON tbl_SpeedRun_Guest (SpeedRunID, GuestID);
 	-- vw_SpeedRunSummary
-	CREATE INDEX IDX_tbl_SpeedRun_Video_SpeedRunID_PlusInclude ON tbl_SpeedRun_Video (SpeedRunID, EmbeddedVideoLinkUrl, ThumbnailLinkUrl);
+	CREATE INDEX IDX_tbl_SpeedRun_Video_SpeedRunID_PlusInclude ON tbl_SpeedRun_Video (SpeedRunID, EmbeddedVideoLinkUrl, ThumbnailLinkUrl, VideoLinkUrl);
 	CREATE INDEX IDX_tbl_SpeedRun_Video_Detail_SpeedRunID ON tbl_SpeedRun_Video_Detail (SpeedRunID);
 	CREATE INDEX IDX_tbl_SpeedRun_Video_Detail_ChannelCode_SpeedRunID ON tbl_SpeedRun_Video_Detail (ChannelCode, SpeedRunID);
 	CREATE INDEX IDX_tbl_Category_CategoryTypeID ON tbl_Category (CategoryTypeID);
 	CREATE INDEX IDX_tbl_SpeedRun_IsExcludeFromSpeedRunList_Rank ON tbl_SpeedRun (IsExcludeFromSpeedRunList, `Rank`);
+	-- vw_SpeedRunVideo
+	CREATE INDEX IDX_tbl_SpeedRun_VerifyDate ON tbl_SpeedRun (VerifyDate);
 	-- vw_User
 	CREATE INDEX IDX_tbl_SpeedRun_Player_UserID ON tbl_SpeedRun_Player (UserID);
 	-- tbl_speedrun_speedruncomid
