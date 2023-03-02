@@ -96,17 +96,23 @@ BEGIN
 		  SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,         
 		  rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
 		  rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate
-		  FROM vw_SpeedRunSummary rn,
-		  LATERAL (SELECT rn1.ID AS Value
+		  FROM vw_SpeedRunSummary rn
+		  LEFT JOIN LATERAL (
+				SELECT GROUP_CONCAT(CONCAT(CONVERT(u.ID,CHAR)) SEPARATOR '^^') Value
+			    FROM tbl_SpeedRun_Player rp  
+				JOIN tbl_User u ON u.ID = rp.UserID
+				WHERE rp.SpeedRunID = rn.ID
+		  ) PlayerIDs ON TRUE		  
+		  LEFT JOIN LATERAL (SELECT rn1.ID AS Value
 					FROM vw_SpeedRunSummaryLite rn1
 					WHERE rn1.GameID = rn.GameID
 					AND rn1.CategoryID = rn.CategoryID
 					AND COALESCE(rn1.LevelID,'') = COALESCE(rn.LevelID,'')
 					AND COALESCE(rn1.SubCategoryVariableValueIDs,'') = COALESCE(rn.SubCategoryVariableValueIDs,'')
-					AND rn1.Players = rn.Players
+					AND rn1.PlayerIDs = PlayerIDs.Value
 					AND rn1.ID <> rn.ID
 					LIMIT 1
-				) AS OtherRun		  
+			) AS OtherRun ON TRUE		  
 		  WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
 		  AND ((SpeedRunListCategoryTypeID IS NULL) OR (rn.CategoryTypeID = SpeedRunListCategoryTypeID))  		  
 		  AND rn.IsExcludeFromSpeedRunList = 0    		  
@@ -225,5 +231,3 @@ BEGIN
      END IF;
 END $$
 DELIMITER ;
-
-

@@ -8,7 +8,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunSummaryLite AS
            rn.CategoryID,
            rn.LevelID,
            SubCategoryVariableValueIDs.Value AS SubCategoryVariableValueIDs,
-           Players.Value AS Players,
+           PlayerIDs.Value AS PlayerIDs,
            rn.`Rank`,
            rn.VerifyDate,
            rn.ImportedDate
@@ -20,8 +20,8 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunSummaryLite AS
 	    WHERE rv.SpeedRunID = rn.ID
 	) SubCategoryVariableValueIDs ON TRUE 		
 	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONCAT(CONVERT(u.ID,CHAR), '¦', u.Name  , '¦', u.Abbr) SEPARATOR '^^') Value
+		SELECT GROUP_CONCAT(CONCAT(CONVERT(u.ID,CHAR)) SEPARATOR '^^') Value
 	    FROM tbl_SpeedRun_Player rp  
 		JOIN tbl_User u ON u.ID = rp.UserID
 		WHERE rp.SpeedRunID = rn.ID
-	) Players ON TRUE;
+	) PlayerIDs ON TRUE;

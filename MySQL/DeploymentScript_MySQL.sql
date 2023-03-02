@@ -738,9 +738,10 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_Game AS
         WHERE gp.GameID = g.ID
     ) Platforms ON TRUE   
 	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONCAT(CONVERT(u.ID,CHAR), '¦', u.Name, '¦', u.Abbr) ORDER BY gm.ID SEPARATOR '^^') Value
+		SELECT GROUP_CONCAT(CONCAT(CONVERT(u.ID,CHAR), '¦', u.Name, '¦', u.Abbr, '¦', COALESCE(nt.ColorLight,''), '¦', COALESCE(nt.ColorToLight,''), '¦', COALESCE(nt.ColorDark,''), '¦', COALESCE(nt.ColorToDark,'')) ORDER BY gm.ID SEPARATOR '^^') Value
 		FROM tbl_User u
 		JOIN tbl_Game_Moderator gm ON gm.UserID = u.ID
+		LEFT JOIN tbl_User_NameStyle nt ON nt.UserID = u.ID
 		WHERE gm.GameID = g.ID
     ) Moderators ON TRUE;
    
@@ -1118,7 +1119,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunSummaryLite AS
            rn.CategoryID,
            rn.LevelID,
            SubCategoryVariableValueIDs.Value AS SubCategoryVariableValueIDs,
-           Players.Value AS Players,
+           PlayerIDs.Value AS PlayerIDs,
            rn.`Rank`,
            rn.VerifyDate,
            rn.ImportedDate
@@ -1130,11 +1131,11 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunSummaryLite AS
 	    WHERE rv.SpeedRunID = rn.ID
 	) SubCategoryVariableValueIDs ON TRUE 		
 	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONCAT(CONVERT(u.ID,CHAR), '¦', u.Name  , '¦', u.Abbr) SEPARATOR '^^') Value
+		SELECT GROUP_CONCAT(CONCAT(CONVERT(u.ID,CHAR)) SEPARATOR '^^') Value
 	    FROM tbl_SpeedRun_Player rp  
 		JOIN tbl_User u ON u.ID = rp.UserID
 		WHERE rp.SpeedRunID = rn.ID
-	) Players ON TRUE;
+	) PlayerIDs ON TRUE;
 
 -- vw_SpeedRunChart
 DROP VIEW IF EXISTS vw_SpeedRunChart;
@@ -1377,17 +1378,23 @@ BEGIN
 		  SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,         
 		  rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
 		  rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate
-		  FROM vw_SpeedRunSummary rn,
-		  LATERAL (SELECT rn1.ID AS Value
+		  FROM vw_SpeedRunSummary rn
+		  LEFT JOIN LATERAL (
+				SELECT GROUP_CONCAT(CONCAT(CONVERT(u.ID,CHAR)) SEPARATOR '^^') Value
+			    FROM tbl_SpeedRun_Player rp  
+				JOIN tbl_User u ON u.ID = rp.UserID
+				WHERE rp.SpeedRunID = rn.ID
+		  ) PlayerIDs ON TRUE		  
+		  LEFT JOIN LATERAL (SELECT rn1.ID AS Value
 					FROM vw_SpeedRunSummaryLite rn1
 					WHERE rn1.GameID = rn.GameID
 					AND rn1.CategoryID = rn.CategoryID
 					AND COALESCE(rn1.LevelID,'') = COALESCE(rn.LevelID,'')
 					AND COALESCE(rn1.SubCategoryVariableValueIDs,'') = COALESCE(rn.SubCategoryVariableValueIDs,'')
-					AND rn1.Players = rn.Players
+					AND rn1.PlayerIDs = PlayerIDs.Value
 					AND rn1.ID <> rn.ID
 					LIMIT 1
-				) AS OtherRun		  
+			) AS OtherRun ON TRUE		  
 		  WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
 		  AND ((SpeedRunListCategoryTypeID IS NULL) OR (rn.CategoryTypeID = SpeedRunListCategoryTypeID))  		  
 		  AND rn.IsExcludeFromSpeedRunList = 0    		  
