@@ -103,7 +103,7 @@ BEGIN
 	CREATE INDEX IDX_tbl_SpeedRun_Player_SpeedRunID_UserID ON tbl_SpeedRun_Player (SpeedRunID, UserID);
 	CREATE INDEX IDX_tbl_SpeedRun_Guest_SpeedRunID_GuestID ON tbl_SpeedRun_Guest (SpeedRunID, GuestID);
 	-- vw_SpeedRunSummary
-	CREATE INDEX IDX_tbl_SpeedRun_Video_SpeedRunID_PlusInclude ON tbl_SpeedRun_Video (SpeedRunID, EmbeddedVideoLinkUrl, ThumbnailLinkUrl, VideoLinkUrl);
+	CREATE INDEX IDX_tbl_SpeedRun_Video_SpeedRunID_PlusInclude ON tbl_SpeedRun_Video (SpeedRunID, EmbeddedVideoLinkUrl, ThumbnailLinkUrl);
 	CREATE INDEX IDX_tbl_SpeedRun_Video_Detail_SpeedRunID ON tbl_SpeedRun_Video_Detail (SpeedRunID);
 	CREATE INDEX IDX_tbl_SpeedRun_Video_Detail_ChannelCode_SpeedRunID ON tbl_SpeedRun_Video_Detail (ChannelCode, SpeedRunID);
 	CREATE INDEX IDX_tbl_Category_CategoryTypeID ON tbl_Category (CategoryTypeID);

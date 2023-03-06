@@ -7,6 +7,6 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunVideo AS
 	CASE WHEN dn2.SpeedRunVideoID IS NOT NULL THEN 1 ELSE 0 END AS HasDetails
 	FROM tbl_speedrun dn
 	JOIN tbl_speedrun_video dn1 ON dn1.SpeedRunID = dn.ID
-	LEFT JOIN tbl_speedrun_video_detail dn2 ON dn2.SpeedRunVideoID = dn1.ID
+	LEFT JOIN tbl_speedrun_video_detail dn2 ON dn2.SpeedRunVideoID = dn1.ID;
 	
 	

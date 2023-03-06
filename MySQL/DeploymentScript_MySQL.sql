@@ -1183,8 +1183,8 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunVideo AS
 	CASE WHEN dn2.SpeedRunVideoID IS NOT NULL THEN 1 ELSE 0 END AS HasDetails
 	FROM tbl_speedrun dn
 	JOIN tbl_speedrun_video dn1 ON dn1.SpeedRunID = dn.ID
-	LEFT JOIN tbl_speedrun_video_detail dn2 ON dn2.SpeedRunVideoID = dn1.ID 
-	
+	LEFT JOIN tbl_speedrun_video_detail dn2 ON dn2.SpeedRunVideoID = dn1.ID;
+
 -- vw_User
 DROP VIEW IF EXISTS vw_User;
 
@@ -1575,7 +1575,8 @@ BEGIN
 	FROM ResultsRaw rn
 	WHERE rn.RowNum = 1
 	ORDER BY rn.CategoryID, rn.LevelID, rn.SubCategoryVariableValueIDs;
-END
+END $$
+DELIMITER ;
 
 -- ImportCreateFullTables
 DROP PROCEDURE IF EXISTS ImportCreateFullTables;
@@ -2236,7 +2237,6 @@ BEGIN
     SELECT ID, Abbr, COALESCE(ModifiedDate, ImportedDate) AS LastModifiedDate 
     FROM tbl_Game
     ORDER BY COALESCE(ModifiedDate, ImportedDate) DESC;	
-	
 END $$
 DELIMITER ;
 
@@ -2525,7 +2525,7 @@ BEGIN
 	CREATE INDEX IDX_tbl_SpeedRun_Player_SpeedRunID_UserID ON tbl_SpeedRun_Player (SpeedRunID, UserID);
 	CREATE INDEX IDX_tbl_SpeedRun_Guest_SpeedRunID_GuestID ON tbl_SpeedRun_Guest (SpeedRunID, GuestID);
 	-- vw_SpeedRunSummary
-	CREATE INDEX IDX_tbl_SpeedRun_Video_SpeedRunID_PlusInclude ON tbl_SpeedRun_Video (SpeedRunID, EmbeddedVideoLinkUrl, ThumbnailLinkUrl, VideoLinkUrl);
+	CREATE INDEX IDX_tbl_SpeedRun_Video_SpeedRunID_PlusInclude ON tbl_SpeedRun_Video (SpeedRunID, EmbeddedVideoLinkUrl, ThumbnailLinkUrl);
 	CREATE INDEX IDX_tbl_SpeedRun_Video_Detail_SpeedRunID ON tbl_SpeedRun_Video_Detail (SpeedRunID);
 	CREATE INDEX IDX_tbl_SpeedRun_Video_Detail_ChannelCode_SpeedRunID ON tbl_SpeedRun_Video_Detail (ChannelCode, SpeedRunID);
 	CREATE INDEX IDX_tbl_Category_CategoryTypeID ON tbl_Category (CategoryTypeID);
