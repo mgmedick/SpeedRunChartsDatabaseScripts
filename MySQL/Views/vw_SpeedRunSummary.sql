@@ -41,7 +41,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunSummary AS
 	    WHERE rv.SpeedRunID = rn.ID
 	) SubCategoryVariableValueIDs ON TRUE     
   	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONCAT(CONVERT(rv.VariableID,CHAR), '¦', CONVERT(rv.VariableValueID,CHAR), '¦', va.Value) ORDER BY rv.ID SEPARATOR '^^') Value
+		SELECT GROUP_CONCAT(va.Value ORDER BY rv.ID SEPARATOR '^^') Value
 	    FROM tbl_SpeedRun_VariableValue rv
 	    JOIN tbl_Variable v ON v.ID = rv.VariableID AND v.IsSubCategory = 1
 		JOIN tbl_VariableValue va ON va.ID = rv.VariableValueID

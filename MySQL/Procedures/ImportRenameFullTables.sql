@@ -96,7 +96,7 @@ BEGIN
 	CREATE INDEX IDX_tbl_Game_Platform_GameID_PlatformID ON tbl_Game_Platform (GameID, PlatformID);
 	CREATE INDEX IDX_tbl_Game_Moderator_GameID_UserID ON tbl_Game_Moderator (GameID, UserID);
 	-- vw_SpeedRunGrid
-    CREATE INDEX IDX_tbl_SpeedRun_GameID_CategoryID_LevelID_Rank_VerifyDate ON tbl_SpeedRun (GameID, CategoryID, LevelID, `Rank`, VerifyDate);
+	CREATE INDEX IDX_tbl_SpeedRun_GameID_CategoryID_LevelID_Rank ON tbl_SpeedRun (GameID, CategoryID, LevelID, `Rank`);
 	CREATE INDEX IDX_tbl_SpeedRun_VariableValue_SpeedRunID_VariableValueID ON tbl_SpeedRun_VariableValue (SpeedRunID, VariableValueID, VariableID);
 	CREATE INDEX IDX_tbl_SpeedRun_VariableValue_SpeedRunID_VariableID ON tbl_SpeedRun_VariableValue (SpeedRunID, VariableID, VariableValueID);
 	CREATE INDEX IDX_tbl_Variable_IsSubCategory ON tbl_Variable (IsSubCategory);
@@ -107,7 +107,8 @@ BEGIN
 	CREATE INDEX IDX_tbl_SpeedRun_Video_Detail_SpeedRunID ON tbl_SpeedRun_Video_Detail (SpeedRunID);
 	CREATE INDEX IDX_tbl_SpeedRun_Video_Detail_ChannelCode_SpeedRunID ON tbl_SpeedRun_Video_Detail (ChannelCode, SpeedRunID);
 	CREATE INDEX IDX_tbl_Category_CategoryTypeID ON tbl_Category (CategoryTypeID);
-	CREATE INDEX IDX_tbl_SpeedRun_IsExcludeFromSpeedRunList_Rank ON tbl_SpeedRun (IsExcludeFromSpeedRunList, `Rank`);
+	CREATE INDEX IDX_tbl_SpeedRun_IsExcludeFromSpeedRunList ON tbl_SpeedRun (IsExcludeFromSpeedRunList);
+	CREATE INDEX IDX_tbl_Game_Link_CoverImagePath ON tbl_Game_Link (CoverImagePath);
 	-- vw_SpeedRunVideo
 	CREATE INDEX IDX_tbl_SpeedRun_VerifyDate ON tbl_SpeedRun (VerifyDate);
 	-- vw_User
