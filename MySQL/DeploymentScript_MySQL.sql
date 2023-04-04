@@ -952,21 +952,6 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGridTab AS
 	    WHERE rv.SpeedRunID = rn.ID
 	) SubCategoryVariableValueIDs ON TRUE;
 
--- vw_SpeedRunGridTabUser
-DROP VIEW IF EXISTS vw_SpeedRunGridTabUser;
-
-CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGridTabUser AS
-
-    SELECT rn.ID,
-           rn.GameID,
-           rn.CategoryID,
-           rn.LevelID,
-           rn.SubCategoryVariableValueIDs,
-           rp.UserID,
-           rn.`Rank`
-    FROM vw_SpeedRunGridTab rn
-	JOIN tbl_SpeedRun_Player rp ON rp.SpeedRunID = rn.ID;
-
 -- vw_SpeedRunGridUser
 DROP VIEW IF EXISTS vw_SpeedRunGridUser;
 
@@ -979,6 +964,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGridUser AS
            rn.PlatformID,
            rn.PlatformName,
            rn.SubCategoryVariableValueIDs,
+           SubCategoryVariableValues.Value AS SubCategoryVariableValues,
            rn.VariableValues,
            rn.Players,
 		   rn.Guests,
@@ -989,7 +975,14 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGridUser AS
            rn.VerifyDate,
            rp.UserID
     FROM vw_SpeedRunGrid rn
-    JOIN tbl_SpeedRun_Player rp ON rp.SpeedRunID = rn.ID;
+    JOIN tbl_SpeedRun_Player rp ON rp.SpeedRunID = rn.ID
+  	LEFT JOIN LATERAL (
+		SELECT GROUP_CONCAT(va.Value ORDER BY rv.ID SEPARATOR ', ') Value
+	    FROM tbl_SpeedRun_VariableValue rv
+	    JOIN tbl_Variable v ON v.ID = rv.VariableID AND v.IsSubCategory = 1
+	    JOIN tbl_VariableValue va ON va.ID = rv.VariableValueID
+	    WHERE rv.SpeedRunID = rn.ID
+	) SubCategoryVariableValues ON TRUE;
 
 -- vw_WorldRecordGrid
 DROP VIEW IF EXISTS vw_WorldRecordGrid;
@@ -2518,7 +2511,7 @@ BEGIN
 	CREATE INDEX IDX_tbl_Game_Platform_GameID_PlatformID ON tbl_Game_Platform (GameID, PlatformID);
 	CREATE INDEX IDX_tbl_Game_Moderator_GameID_UserID ON tbl_Game_Moderator (GameID, UserID);
 	-- vw_SpeedRunGrid
-	CREATE INDEX IDX_tbl_SpeedRun_GameID_CategoryID_LevelID_Rank ON tbl_SpeedRun (GameID, CategoryID, LevelID, `Rank`);
+	CREATE INDEX IDX_tbl_SpeedRun_GameID_CategoryID_LevelID_Rank_VerifyDate ON tbl_SpeedRun (GameID, CategoryID, LevelID, `Rank`, VerifyDate);
 	CREATE INDEX IDX_tbl_SpeedRun_VariableValue_SpeedRunID_VariableValueID ON tbl_SpeedRun_VariableValue (SpeedRunID, VariableValueID, VariableID);
 	CREATE INDEX IDX_tbl_SpeedRun_VariableValue_SpeedRunID_VariableID ON tbl_SpeedRun_VariableValue (SpeedRunID, VariableID, VariableValueID);
 	CREATE INDEX IDX_tbl_Variable_IsSubCategory ON tbl_Variable (IsSubCategory);
@@ -2529,7 +2522,7 @@ BEGIN
 	CREATE INDEX IDX_tbl_SpeedRun_Video_Detail_SpeedRunID ON tbl_SpeedRun_Video_Detail (SpeedRunID);
 	CREATE INDEX IDX_tbl_SpeedRun_Video_Detail_ChannelCode_SpeedRunID ON tbl_SpeedRun_Video_Detail (ChannelCode, SpeedRunID);
 	CREATE INDEX IDX_tbl_Category_CategoryTypeID ON tbl_Category (CategoryTypeID);
-	CREATE INDEX IDX_tbl_SpeedRun_IsExcludeFromSpeedRunList ON tbl_SpeedRun (IsExcludeFromSpeedRunList);
+	CREATE INDEX IDX_tbl_SpeedRun_IsExcludeFromSpeedRunList_Rank ON tbl_SpeedRun (IsExcludeFromSpeedRunList, `Rank`);
 	CREATE INDEX IDX_tbl_Game_Link_CoverImagePath ON tbl_Game_Link (CoverImagePath);
 	-- vw_SpeedRunVideo
 	CREATE INDEX IDX_tbl_SpeedRun_VerifyDate ON tbl_SpeedRun (VerifyDate);
@@ -2539,6 +2532,21 @@ BEGIN
 	CREATE INDEX IDX_tbl_SpeedRun_SpeedRunComID_SpeedRunComID ON tbl_SpeedRun_SpeedRunComID (SpeedRunComID);
 END $$
 DELIMITER ;
+
+-- RecreateSpeedRunIndexes
+DROP PROCEDURE IF EXISTS RecreateSpeedRunIndexes;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE RecreateSpeedRunIndexes()
+BEGIN
+	ALTER TABLE tbl_speedrun DROP INDEX IDX_tbl_SpeedRun_GameID_CategoryID_LevelID_Rank_VerifyDate;
+	ALTER TABLE tbl_speedrun DROP INDEX IDX_tbl_SpeedRun_IsExcludeFromSpeedRunList_Rank;
+	ALTER TABLE tbl_speedrun DROP INDEX IDX_tbl_SpeedRun_VerifyDate;
+
+	CREATE INDEX IDX_tbl_SpeedRun_GameID_CategoryID_LevelID_Rank_VerifyDate ON tbl_SpeedRun (GameID, CategoryID, LevelID, `Rank`, VerifyDate);
+	CREATE INDEX IDX_tbl_SpeedRun_IsExcludeFromSpeedRunList_Rank ON tbl_SpeedRun (IsExcludeFromSpeedRunList, `Rank`);	
+	CREATE INDEX IDX_tbl_SpeedRun_VerifyDate ON tbl_SpeedRun (VerifyDate);
+END
 
 -- ImportUpdateSpeedRunRanksFull
 DROP PROCEDURE IF EXISTS ImportUpdateSpeedRunRanksFull;
