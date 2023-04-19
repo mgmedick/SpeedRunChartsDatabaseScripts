@@ -712,7 +712,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_Game AS
 		GROUP BY ct.ID, ct.Name) ct1
 	) CategoryTypes ON TRUE   
     LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONCAT(CONVERT(c.ID,CHAR), '|', CONVERT(c.CategoryTypeID,CHAR), '|', CASE c.IsTimerAscending WHEN 1 THEN 'True' ELSE 'False' END, '|', c.Name) ORDER BY c.IsMiscellaneous, c.ID SEPARATOR '^^') Value
+		SELECT GROUP_CONCAT(CONCAT(CONVERT(c.ID,CHAR), '|', CONVERT(c.CategoryTypeID,CHAR), '|', CASE c.IsTimerAscending WHEN 1 THEN 'True' ELSE 'False' END, '|', CASE c.IsMiscellaneous WHEN 1 THEN 'True' ELSE 'False' END, '|', c.Name) ORDER BY c.IsMiscellaneous, c.ID SEPARATOR '^^') Value
         FROM tbl_Category c
         WHERE c.GameID = g.ID
     ) Categories ON TRUE
@@ -744,7 +744,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_Game AS
 		LEFT JOIN tbl_User_NameStyle nt ON nt.UserID = u.ID
 		WHERE gm.GameID = g.ID
     ) Moderators ON TRUE;
-   
+    
  -- vw_GameSpeedRunCom
  DROP VIEW IF EXISTS vw_GameSpeedRunCom;
 
@@ -1001,7 +1001,8 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_WorldRecordGrid AS
            rn.GameID,
            rn.CategoryID,
            c.Name AS CategoryName,
-           c.CategoryTypeID,           
+           c.CategoryTypeID,       
+           c.IsMiscellaneous,
            rn.LevelID,
            l.Name AS LevelName,           
            rn.PlatformID,

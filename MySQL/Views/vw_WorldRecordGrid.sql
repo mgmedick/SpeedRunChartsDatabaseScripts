@@ -7,7 +7,8 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_WorldRecordGrid AS
            rn.GameID,
            rn.CategoryID,
            c.Name AS CategoryName,
-           c.CategoryTypeID,           
+           c.CategoryTypeID,       
+           c.IsMiscellaneous,
            rn.LevelID,
            l.Name AS LevelName,           
            rn.PlatformID,
@@ -15,7 +16,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_WorldRecordGrid AS
            rn.SubCategoryVariableValueIDs,
            rn.VariableValues,
            rn.Players,
-		   rn.Guests,
+           rn.Guests,
            rn.`Rank`,
            rn.PrimaryTime,
            rn.Comment,
@@ -24,4 +25,3 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_WorldRecordGrid AS
     FROM vw_SpeedRunGrid rn
     JOIN tbl_Category c ON c.ID = rn.CategoryID
     LEFT JOIN tbl_Level l ON l.ID = rn.LevelID;
-	
