@@ -899,6 +899,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGrid AS
            VariableValues.Value AS VariableValues,
            Players.Value AS Players,
 		   Guests.Value AS Guests,
+		   VideoLinks.Value AS VideoLinks,
            rn.Rank,
            rn.PrimaryTime,
            rc.Comment,
@@ -931,7 +932,12 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGrid AS
 	    FROM tbl_SpeedRun_Guest rg
 		JOIN tbl_Guest g ON g.ID = rg.GuestID
 		WHERE rg.SpeedRunID = rn.ID
-	) Guests ON TRUE;
+	) Guests ON TRUE
+	LEFT JOIN LATERAL (
+		SELECT GROUP_CONCAT(COALESCE(dn.VideoLinkUrl,'') SEPARATOR '^^') Value
+	    FROM tbl_SpeedRun_Video dn
+		WHERE dn.SpeedRunID = rn.ID
+	) VideoLinks ON TRUE;	
 
 -- vw_SpeedRunGridTab
 DROP VIEW IF EXISTS vw_SpeedRunGridTab;
@@ -973,6 +979,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGridUser AS
            rn.VariableValues,
            rn.Players,
            rn.Guests,
+           rn.VideoLinks,
            rn.`Rank`,
            rn.PrimaryTime,
            rn.Comment,
@@ -991,7 +998,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGridUser AS
 	    JOIN tbl_VariableValue va ON va.ID = rv.VariableValueID
 	    WHERE rv.SpeedRunID = rn.ID
 	) SubCategoryVariableValues ON TRUE;
-
+	
 -- vw_WorldRecordGrid
 DROP VIEW IF EXISTS vw_WorldRecordGrid;
 
@@ -1011,6 +1018,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_WorldRecordGrid AS
            rn.VariableValues,
            rn.Players,
 		   rn.Guests,
+		   rn.VideoLinks,
            rn.`Rank`,
            rn.PrimaryTime,
            rn.Comment,
@@ -1038,6 +1046,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_WorldRecordGridUser AS
            rn.VariableValues,
            rn.Players,
 		   rn.Guests,
+		   rn.VideoLinks,		   
            rn.`Rank`,
            rn.PrimaryTime,
            rn.Comment,

@@ -16,6 +16,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_WorldRecordGridUser AS
            rn.VariableValues,
            rn.Players,
 		   rn.Guests,
+		   rn.VideoLinks,		   
            rn.`Rank`,
            rn.PrimaryTime,
            rn.Comment,
@@ -24,3 +25,6 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_WorldRecordGridUser AS
            rp.UserID
     FROM vw_WorldRecordGrid rn
     JOIN tbl_SpeedRun_Player rp ON rp.SpeedRunID = rn.ID;
+    
+   
+   

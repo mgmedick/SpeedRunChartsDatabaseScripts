@@ -19,6 +19,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGridUser AS
            rn.VariableValues,
            rn.Players,
            rn.Guests,
+           rn.VideoLinks,
            rn.`Rank`,
            rn.PrimaryTime,
            rn.Comment,

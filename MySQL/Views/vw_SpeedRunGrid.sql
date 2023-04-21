@@ -13,6 +13,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGrid AS
            VariableValues.Value AS VariableValues,
            Players.Value AS Players,
 		   Guests.Value AS Guests,
+		   VideoLinks.Value AS VideoLinks,
            rn.Rank,
            rn.PrimaryTime,
            rc.Comment,
@@ -45,4 +46,9 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGrid AS
 	    FROM tbl_SpeedRun_Guest rg
 		JOIN tbl_Guest g ON g.ID = rg.GuestID
 		WHERE rg.SpeedRunID = rn.ID
-	) Guests ON TRUE;
+	) Guests ON TRUE
+	LEFT JOIN LATERAL (
+		SELECT GROUP_CONCAT(COALESCE(dn.VideoLinkUrl,'') SEPARATOR '^^') Value
+	    FROM tbl_SpeedRun_Video dn
+		WHERE dn.SpeedRunID = rn.ID
+	) VideoLinks ON TRUE;	
