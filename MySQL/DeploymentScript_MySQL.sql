@@ -1094,27 +1094,27 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunSummary AS
     LEFT JOIN tbl_Level l ON l.ID = rn.LevelID
   	LEFT JOIN LATERAL (
 		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) ORDER BY rv.ID SEPARATOR ',') Value
-	    FROM tbl_SpeedRun_VariableValue rv
-	    JOIN tbl_Variable v ON v.ID = rv.VariableID AND v.IsSubCategory = 1
+	    FROM tbl_SpeedRun_VariableValue rv FORCE INDEX (IDX_tbl_SpeedRun_VariableValue_SpeedRunID_VariableID)
+	    JOIN tbl_Variable v FORCE INDEX FOR JOIN (IDX_tbl_Variable_IsSubCategory) ON v.ID = rv.VariableID AND v.IsSubCategory = 1
 	    WHERE rv.SpeedRunID = rn.ID
 	) SubCategoryVariableValueIDs ON TRUE     
   	LEFT JOIN LATERAL (
 		SELECT GROUP_CONCAT(va.Value ORDER BY rv.ID SEPARATOR '^^') Value
-	    FROM tbl_SpeedRun_VariableValue rv
-	    JOIN tbl_Variable v ON v.ID = rv.VariableID AND v.IsSubCategory = 1
+	    FROM tbl_SpeedRun_VariableValue rv FORCE INDEX (IDX_tbl_SpeedRun_VariableValue_SpeedRunID_VariableValueID)
+	    JOIN tbl_Variable v FORCE INDEX FOR JOIN (IDX_tbl_Variable_IsSubCategory) ON v.ID = rv.VariableID AND v.IsSubCategory = 1
 		JOIN tbl_VariableValue va ON va.ID = rv.VariableValueID
 	    WHERE rv.SpeedRunID = rn.ID
 	) SubCategoryVariableValues ON TRUE    
  	LEFT JOIN LATERAL (
 		SELECT GROUP_CONCAT(CONCAT(CONVERT(u.ID,CHAR), '¦', u.Name, '¦', u.Abbr, '¦', COALESCE(nt.ColorLight,''), '¦', COALESCE(nt.ColorToLight,''), '¦', COALESCE(nt.ColorDark,''), '¦', COALESCE(nt.ColorToDark,'')) SEPARATOR '^^') Value
-	    FROM tbl_SpeedRun_Player rp  
+	    FROM tbl_SpeedRun_Player rp FORCE INDEX (IDX_tbl_SpeedRun_Player_SpeedRunID_UserID)
 		JOIN tbl_User u ON u.ID = rp.UserID
 		LEFT JOIN tbl_User_NameStyle nt ON nt.UserID = u.ID
 		WHERE rp.SpeedRunID = rn.ID
 	) Players ON TRUE       
   	LEFT JOIN LATERAL (
 		SELECT GROUP_CONCAT(CONCAT(rd.EmbeddedVideoLinkUrl, '|', COALESCE(rd.ThumbnailLinkUrl,''), '|', CONVERT(COALESCE(rd1.ViewCount,''),CHAR)) ORDER BY rd.ID SEPARATOR '^^') Value
-	    FROM tbl_SpeedRun_Video rd
+	    FROM tbl_SpeedRun_Video rd FORCE INDEX (IDX_tbl_SpeedRun_Video_SpeedRunID_PlusInclude)
 		LEFT JOIN tbl_SpeedRun_Video_Detail rd1 ON rd1.SpeedRunVideoID = rd.ID 
 	    WHERE rd.SpeedRunID = rn.ID
 	    AND rd.EmbeddedVideoLinkUrl IS NOT NULL
@@ -1137,13 +1137,13 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunSummaryLite AS
     FROM tbl_SpeedRun rn   
   	LEFT JOIN LATERAL (
 		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) ORDER BY rv.ID SEPARATOR ',') Value
-	    FROM tbl_SpeedRun_VariableValue rv
-	    JOIN tbl_Variable v ON v.ID = rv.VariableID AND v.IsSubCategory = 1
+	    FROM tbl_SpeedRun_VariableValue rv FORCE INDEX (IDX_tbl_SpeedRun_VariableValue_SpeedRunID_VariableID)
+	    JOIN tbl_Variable v FORCE INDEX FOR JOIN (IDX_tbl_Variable_IsSubCategory) ON v.ID = rv.VariableID AND v.IsSubCategory = 1
 	    WHERE rv.SpeedRunID = rn.ID
 	) SubCategoryVariableValueIDs ON TRUE 		
 	LEFT JOIN LATERAL (
 		SELECT GROUP_CONCAT(CONCAT(CONVERT(u.ID,CHAR)) SEPARATOR '^^') Value
-	    FROM tbl_SpeedRun_Player rp  
+	    FROM tbl_SpeedRun_Player rp FORCE INDEX (IDX_tbl_SpeedRun_Player_SpeedRunID_UserID)
 		JOIN tbl_User u ON u.ID = rp.UserID
 		WHERE rp.SpeedRunID = rn.ID
 	) PlayerIDs ON TRUE;
@@ -1412,7 +1412,7 @@ BEGIN
 		  FROM vw_SpeedRunSummary rn
 		  LEFT JOIN LATERAL (
 				SELECT GROUP_CONCAT(CONCAT(CONVERT(u.ID,CHAR)) SEPARATOR '^^') Value
-			    FROM tbl_SpeedRun_Player rp  
+			    FROM tbl_SpeedRun_Player rp FORCE INDEX (IDX_tbl_SpeedRun_Player_SpeedRunID_UserID)
 				JOIN tbl_User u ON u.ID = rp.UserID
 				WHERE rp.SpeedRunID = rn.ID
 		  ) PlayerIDs ON TRUE		  
@@ -1441,7 +1441,7 @@ BEGIN
 			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate
           FROM vw_SpeedRunSummary rn,
 		  LATERAL (SELECT MAX(rn1.ViewCount) AS Value, COUNT(rn1.SpeedRunVideoID) AS VideoCount
-					FROM tbl_SpeedRun_Video_Detail rn1
+					FROM tbl_SpeedRun_Video_Detail rn1 FORCE INDEX (IDX_tbl_SpeedRun_Video_Detail_SpeedRunID)
 					WHERE rn1.SpeedRunID = rn.ID
 			    ) AS MaxViewCount          
           WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))

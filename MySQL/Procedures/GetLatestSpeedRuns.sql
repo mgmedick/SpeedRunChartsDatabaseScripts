@@ -99,7 +99,7 @@ BEGIN
 		  FROM vw_SpeedRunSummary rn
 		  LEFT JOIN LATERAL (
 				SELECT GROUP_CONCAT(CONCAT(CONVERT(u.ID,CHAR)) SEPARATOR '^^') Value
-			    FROM tbl_SpeedRun_Player rp  
+			    FROM tbl_SpeedRun_Player rp FORCE INDEX (IDX_tbl_SpeedRun_Player_SpeedRunID_UserID)
 				JOIN tbl_User u ON u.ID = rp.UserID
 				WHERE rp.SpeedRunID = rn.ID
 		  ) PlayerIDs ON TRUE		  
@@ -128,7 +128,7 @@ BEGIN
 			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate
           FROM vw_SpeedRunSummary rn,
 		  LATERAL (SELECT MAX(rn1.ViewCount) AS Value, COUNT(rn1.SpeedRunVideoID) AS VideoCount
-					FROM tbl_SpeedRun_Video_Detail rn1
+					FROM tbl_SpeedRun_Video_Detail rn1 FORCE INDEX (IDX_tbl_SpeedRun_Video_Detail_SpeedRunID)
 					WHERE rn1.SpeedRunID = rn.ID
 			    ) AS MaxViewCount          
           WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
