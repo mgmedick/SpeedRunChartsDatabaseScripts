@@ -1,3 +1,4 @@
+-- ImportKillOtherProcesses
 DROP PROCEDURE IF EXISTS ImportKillOtherProcesses;
 
 DELIMITER $$
@@ -6,7 +7,7 @@ CREATE PROCEDURE ImportKillOtherProcesses()
 BEGIN
   DECLARE finished INT DEFAULT 0;
   DECLARE proc_id INT;
-  DECLARE proc_id_cursor CURSOR FOR SELECT ID FROM information_schema.processlist WHERE USER = 'root' AND INFO LIKE '%FROM vw_SpeedRunSummary%';
+  DECLARE proc_id_cursor CURSOR FOR SELECT ID FROM information_schema.processlist WHERE USER = 'root';
   DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
 
   OPEN proc_id_cursor;
@@ -26,4 +27,3 @@ BEGIN
 END$$
 
 DELIMITER ;
-

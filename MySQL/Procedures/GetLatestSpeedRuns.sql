@@ -96,14 +96,14 @@ BEGIN
 		  SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,         
 		  rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
 		  rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate
-		  FROM vw_SpeedRunSummary rn
-		  LEFT JOIN LATERAL (
-				SELECT GROUP_CONCAT(CONCAT(CONVERT(u.ID,CHAR)) SEPARATOR '^^') Value
-			    FROM tbl_SpeedRun_Player rp FORCE INDEX (IDX_tbl_SpeedRun_Player_SpeedRunID_UserID)
+		  FROM vw_SpeedRunSummary rn,
+		  LATERAL (
+				SELECT GROUP_CONCAT(CONVERT(u.ID,CHAR) SEPARATOR '^^') Value
+			    FROM tbl_SpeedRun_Player rp
 				JOIN tbl_User u ON u.ID = rp.UserID
 				WHERE rp.SpeedRunID = rn.ID
-		  ) PlayerIDs ON TRUE		  
-		  LEFT JOIN LATERAL (SELECT rn1.ID AS Value
+		  ) AS PlayerIDs,		  
+		  LATERAL (SELECT rn1.ID AS Value
 					FROM vw_SpeedRunSummaryLite rn1
 					WHERE rn1.GameID = rn.GameID
 					AND rn1.CategoryID = rn.CategoryID
@@ -112,7 +112,7 @@ BEGIN
 					AND rn1.PlayerIDs = PlayerIDs.Value
 					AND rn1.ID <> rn.ID
 					LIMIT 1
-			) AS OtherRun ON TRUE		  
+			) AS OtherRun		  
 		  WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
 		  AND ((SpeedRunListCategoryTypeID IS NULL) OR (rn.CategoryTypeID = SpeedRunListCategoryTypeID))  		  
 		  AND rn.IsExcludeFromSpeedRunList = 0    		  
@@ -144,12 +144,16 @@ BEGIN
           SELECT rn.ID, rn.SpeedRunComID, rn.GameID, rn.GameName, rn.GameAbbr, rn.GameCoverImageUrl, rn.ShowMilliseconds,          
                rn.CategoryTypeID, rn.CategoryTypeName, rn.CategoryID, rn.CategoryName, rn.LevelID, rn.LevelName,
 			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate
-          FROM vw_SpeedRunSummary rn
+          FROM vw_SpeedRunSummary rn,
+		  LATERAL (SELECT MAX(rn1.SpeedRunVideoID) AS Value
+					FROM tbl_SpeedRun_Video_Detail rn1
+					JOIN tbl_Channel ca ON ca.Code = rn1.ChannelCode
+					WHERE rn1.SpeedRunID = rn.ID
+			    ) AS MaxSpeedRunVideoID              
           WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
 		  AND ((SpeedRunListCategoryTypeID IS NULL) OR (rn.CategoryTypeID = SpeedRunListCategoryTypeID))            
 		  AND rn.IsExcludeFromSpeedRunList = 0             
           AND rn.EmbeddedVideoLinks IS NOT NULL
-          AND EXISTS (SELECT 1 FROM tbl_SpeedRun_Video_Detail rn1 JOIN tbl_Channel ca ON ca.Code = rn1.ChannelCode WHERE rn1.SpeedRunID = rn.ID)
 		  ORDER BY rn.ID DESC
           LIMIT TopAmount;  
 	 -- Fresh
