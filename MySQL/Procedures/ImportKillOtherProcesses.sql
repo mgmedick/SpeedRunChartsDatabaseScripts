@@ -3,11 +3,14 @@ DROP PROCEDURE IF EXISTS ImportKillOtherProcesses;
 
 DELIMITER $$
 
-CREATE PROCEDURE ImportKillOtherProcesses()
+CREATE PROCEDURE ImportKillOtherProcesses
+(
+	IN InfoContains VARCHAR(8000)
+)
 BEGIN
   DECLARE finished INT DEFAULT 0;
   DECLARE proc_id INT;
-  DECLARE proc_id_cursor CURSOR FOR SELECT ID FROM information_schema.processlist WHERE USER = 'root';
+  DECLARE proc_id_cursor CURSOR FOR SELECT ID FROM information_schema.processlist WHERE USER = 'root' AND (InfoContains IS NULL OR INFO LIKE CONCAT('%', InfoContains, '%'));
   DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
 
   OPEN proc_id_cursor;
@@ -27,3 +30,4 @@ BEGIN
 END$$
 
 DELIMITER ;
+

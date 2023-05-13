@@ -128,7 +128,7 @@ BEGIN
 			   rn.SubCategoryVariableValues, rn.Players, rn.EmbeddedVideoLinks, rn.`Rank`, rn.PrimaryTime, rn.DateSubmitted, rn.VerifyDate, rn.ImportedDate
           FROM vw_SpeedRunSummary rn,
 		  LATERAL (SELECT MAX(rn1.ViewCount) AS Value, COUNT(rn1.SpeedRunVideoID) AS VideoCount
-					FROM tbl_SpeedRun_Video_Detail rn1 FORCE INDEX (IDX_tbl_SpeedRun_Video_Detail_SpeedRunID)
+					FROM tbl_SpeedRun_Video_Detail rn1
 					WHERE rn1.SpeedRunID = rn.ID
 			    ) AS MaxViewCount          
           WHERE ((OrderValueOffset IS NULL) OR (rn.ID < OrderValueOffset))
