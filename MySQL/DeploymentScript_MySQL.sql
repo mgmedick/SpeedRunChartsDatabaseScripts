@@ -1156,7 +1156,6 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunChart AS
     SELECT rn.ID,
            rn.GameID,
            rn.CategoryID,
-           c.CategoryTypeID,
            rn.LevelID,
            SubCategoryVariableValueIDs.Value AS SubCategoryVariableValueIDs,
            rn.PrimaryTime,
@@ -1165,7 +1164,6 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunChart AS
            Guests.Value AS Guests,           
            rn.DateSubmitted
     FROM tbl_SpeedRun rn
-    JOIN tbl_Category c ON c.ID = rn.CategoryID
   	LEFT JOIN LATERAL (
 		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) ORDER BY rv.ID SEPARATOR ',') Value
 	    FROM tbl_SpeedRun_VariableValue rv
@@ -1193,7 +1191,6 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunChartUser AS
     SELECT rn.ID,
            rn.GameID,
            rn.CategoryID,
-           rn.CategoryTypeID,
            rn.LevelID,
            rn.SubCategoryVariableValueIDs,
            rn.PrimaryTime,
@@ -1204,7 +1201,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunChartUser AS
            rp.UserID
     FROM vw_SpeedRunChart rn
     JOIN tbl_SpeedRun_Player rp ON rp.SpeedRunID = rn.ID;
-
+   
 -- vw_SpeedRunVideo
 DROP VIEW IF EXISTS vw_SpeedRunVideo;
 

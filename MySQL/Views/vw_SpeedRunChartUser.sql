@@ -6,7 +6,6 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunChartUser AS
     SELECT rn.ID,
            rn.GameID,
            rn.CategoryID,
-           rn.CategoryTypeID,
            rn.LevelID,
            rn.SubCategoryVariableValueIDs,
            rn.PrimaryTime,
@@ -17,6 +16,5 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunChartUser AS
            rp.UserID
     FROM vw_SpeedRunChart rn
     JOIN tbl_SpeedRun_Player rp ON rp.SpeedRunID = rn.ID;
+    
    
-   
-	
