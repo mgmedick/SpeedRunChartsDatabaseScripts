@@ -622,7 +622,7 @@ CREATE TABLE tbl_SpeedRun_Video_Detail(
 	SpeedRunVideoID int NOT NULL,
 	SpeedRunID int NOT NULL,
 	ChannelCode varchar(50) NULL,
-	ViewCount int NULL,
+	ViewCount bigint NULL,
 	PRIMARY KEY (SpeedRunVideoID) 	
 );
 CREATE INDEX IDX_tbl_SpeedRun_Video_Detail_SpeedRunID ON tbl_SpeedRun_Video_Detail (SpeedRunID);
@@ -2235,7 +2235,7 @@ BEGIN
 		SpeedRunVideoID int NOT NULL,
 		SpeedRunID int NOT NULL,
 		ChannelCode varchar(50) NULL,
-		ViewCount int NULL,
+		ViewCount bigint NULL,
 		PRIMARY KEY (SpeedRunVideoID) 	
 	);
 
@@ -2246,7 +2246,7 @@ BEGIN
 		SpeedRunVideoID int NOT NULL,
 		SpeedRunID int NOT NULL,
 		ChannelCode varchar(50) NULL,
-		ViewCount int NULL,
+		ViewCount bigint NULL,
 		PRIMARY KEY (SpeedRunVideoID) 	
 	);
 

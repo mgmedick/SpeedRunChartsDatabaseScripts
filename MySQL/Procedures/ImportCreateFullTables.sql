@@ -623,7 +623,7 @@ BEGIN
 		SpeedRunVideoID int NOT NULL,
 		SpeedRunID int NOT NULL,
 		ChannelCode varchar(50) NULL,
-		ViewCount int NULL,
+		ViewCount bigint NULL,
 		PRIMARY KEY (SpeedRunVideoID) 	
 	);
 
@@ -634,7 +634,7 @@ BEGIN
 		SpeedRunVideoID int NOT NULL,
 		SpeedRunID int NOT NULL,
 		ChannelCode varchar(50) NULL,
-		ViewCount int NULL,
+		ViewCount bigint NULL,
 		PRIMARY KEY (SpeedRunVideoID) 	
 	);
 
