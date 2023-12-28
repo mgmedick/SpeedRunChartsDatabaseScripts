@@ -125,7 +125,7 @@ DROP TABLE IF EXISTS tbl_Game;
 CREATE TABLE tbl_Game 
 ( 
     ID int NOT NULL AUTO_INCREMENT, 
-    Name varchar (100) NOT NULL,
+    Name varchar (250) NOT NULL,
     IsRomHack bit NOT NULL,
     YearOfRelease int NULL,
     CreatedDate datetime NULL,  
@@ -168,7 +168,7 @@ DROP TABLE IF EXISTS tbl_Level;
 CREATE TABLE tbl_Level 
 ( 
     ID int NOT NULL AUTO_INCREMENT, 
-    Name varchar (100) NOT NULL,
+    Name varchar (250) NOT NULL,
     GameID int NOT NULL,
     PRIMARY KEY (ID) 
 );
@@ -215,7 +215,7 @@ DROP TABLE IF EXISTS tbl_Category;
 CREATE TABLE tbl_Category
 ( 
     ID int NOT NULL AUTO_INCREMENT, 
-    Name varchar (100) NOT NULL,
+    Name varchar (250) NOT NULL,
     GameID int NOT NULL,
     CategoryTypeID int NOT NULL,
     IsMiscellaneous bit NOT NULL, 
@@ -264,7 +264,7 @@ DROP TABLE IF EXISTS tbl_Variable;
 CREATE TABLE tbl_Variable
 ( 
     ID int NOT NULL AUTO_INCREMENT, 
-    Name varchar (100) NOT NULL,
+    Name varchar (250) NOT NULL,
     GameID int NOT NULL,
     VariableScopeTypeID int NOT NULL,
     CategoryID int NULL,
@@ -614,6 +614,7 @@ CREATE TABLE tbl_SpeedRun_Video
 -- ALTER TABLE tbl_SpeedRun_Video ADD CONSTRAINT FK_tbl_SpeedRun_Video_tbl_SpeedRun FOREIGN KEY (SpeedRunID) REFERENCES tbl_SpeedRun (ID);
 -- CREATE INDEX IDX_tbl_SpeedRun_Video_SpeedRunID_EmbeddedVideoLinkUrl_PlusInclude ON tbl_SpeedRun_Video (SpeedRunID,EmbeddedVideoLinkUrl,ThumbnailLinkUrl);
 CREATE INDEX IDX_tbl_SpeedRun_Video_SpeedRunID ON tbl_SpeedRun_Video (SpeedRunID);
+CREATE INDEX IDX_tbl_SpeedRun_Video_SpeedRunID_PlusInclude ON tbl_SpeedRun_Video (SpeedRunID, EmbeddedVideoLinkUrl, ThumbnailLinkUrl);
 
 -- tbl_SpeedRun_Video_Detail
 DROP TABLE IF EXISTS tbl_SpeedRun_Video_Detail;
@@ -698,7 +699,7 @@ DROP VIEW IF EXISTS vw_Game;
 
 CREATE DEFINER=`root`@`localhost` VIEW vw_Game AS
 
-    SELECT g.ID, g.Name, g.Abbr, gl.CoverImagePath AS CoverImageUrl, g.YearOfRelease, COALESCE(g.IsChanged, 0) AS IsChanged, gr.ShowMilliseconds, CategoryTypes.Value AS CategoryTypes, Categories.Value AS Categories, Levels.Value AS Levels,
+    SELECT g.ID, g.Name, g.Abbr, gl.CoverImageUrl, g.YearOfRelease, COALESCE(g.IsChanged, 0) AS IsChanged, gr.ShowMilliseconds, CategoryTypes.Value AS CategoryTypes, Categories.Value AS Categories, Levels.Value AS Levels,
         Variables.Value AS Variables, VariableValues.Value AS VariableValues, Platforms.Value AS Platforms, Moderators.Value AS Moderators, gl.SpeedRunComUrl        
     FROM tbl_Game g
     JOIN tbl_Game_Link gl ON gl.GameID = g.ID
@@ -1066,7 +1067,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunSummary AS
            g.ID AS GameID,
            g.Name AS GameName,
 		   g.Abbr AS GameAbbr, 
-           gl.CoverImagePath AS GameCoverImageUrl,
+           gl.CoverImageUrl AS GameCoverImageUrl,
 		   gr.ShowMilliseconds,           
            ct.ID AS CategoryTypeID,
            ct.Name AS CategoryTypeName,           
@@ -1742,7 +1743,7 @@ BEGIN
 	CREATE TABLE tbl_Game_Full
 	( 
 	    ID int NOT NULL AUTO_INCREMENT, 
-	    Name varchar (100) NOT NULL,
+	    Name varchar (250) NOT NULL,
 	    IsRomHack bit NOT NULL,
 	    YearOfRelease int NULL,
 	    CreatedDate datetime NULL,  
@@ -1791,7 +1792,7 @@ BEGIN
 	CREATE TABLE tbl_Level_Full 
 	( 
 	    ID int NOT NULL AUTO_INCREMENT, 
-	    Name varchar (100) NOT NULL,
+	    Name varchar (250) NOT NULL,
 	    GameID int NOT NULL,
 	    PRIMARY KEY (ID) 
 	);
@@ -1832,7 +1833,7 @@ BEGIN
 	CREATE TABLE tbl_Category_Full
 	( 
 	    ID int NOT NULL AUTO_INCREMENT, 
-	    Name varchar (100) NOT NULL,
+	    Name varchar (250) NOT NULL,
 	    GameID int NOT NULL,
 	    CategoryTypeID int NOT NULL,
 	    IsMiscellaneous bit NOT NULL, 
@@ -1866,7 +1867,7 @@ BEGIN
 	CREATE TABLE tbl_Variable_Full
 	( 
 	    ID int NOT NULL AUTO_INCREMENT, 
-	    Name varchar (100) NOT NULL,
+	    Name varchar (250) NOT NULL,
 	    GameID int NOT NULL,
 	    VariableScopeTypeID int NOT NULL,
 	    CategoryID int NULL,
@@ -2572,22 +2573,21 @@ BEGIN
 END $$
 DELIMITER ;
 
--- ImportRecreateSpeedRunIndexes
-DROP PROCEDURE IF EXISTS ImportRecreateSpeedRunIndexes;
+-- RecreateSpeedRunIndexes
+DROP PROCEDURE IF EXISTS RecreateSpeedRunIndexes;
 
 DELIMITER $$
-CREATE DEFINER=`root`@`localhost` PROCEDURE ImportRecreateSpeedRunIndexes()
+CREATE DEFINER=`root`@`localhost` PROCEDURE RecreateSpeedRunIndexes()
 BEGIN
 	ALTER TABLE tbl_speedrun DROP INDEX IDX_tbl_SpeedRun_GameID_CategoryID_LevelID_Rank_VerifyDate;
 	ALTER TABLE tbl_speedrun DROP INDEX IDX_tbl_SpeedRun_IsExcludeFromSpeedRunList_Rank;
 	ALTER TABLE tbl_speedrun DROP INDEX IDX_tbl_SpeedRun_VerifyDate;
 
-	ANALYZE TABLE tbl_speedrun;
-
 	CREATE INDEX IDX_tbl_SpeedRun_GameID_CategoryID_LevelID_Rank_VerifyDate ON tbl_SpeedRun (GameID, CategoryID, LevelID, `Rank`, VerifyDate);
 	CREATE INDEX IDX_tbl_SpeedRun_IsExcludeFromSpeedRunList_Rank ON tbl_SpeedRun (IsExcludeFromSpeedRunList, `Rank`);	
 	CREATE INDEX IDX_tbl_SpeedRun_VerifyDate ON tbl_SpeedRun (VerifyDate);
-END
+END $$
+DELIMITER ;
 
 -- ImportUpdateSpeedRunRanksFull
 DROP PROCEDURE IF EXISTS ImportUpdateSpeedRunRanksFull;

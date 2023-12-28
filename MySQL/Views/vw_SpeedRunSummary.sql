@@ -8,7 +8,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunSummary AS
            g.ID AS GameID,
            g.Name AS GameName,
 		   g.Abbr AS GameAbbr, 
-           gl.CoverImagePath AS GameCoverImageUrl,
+           gl.CoverImageUrl AS GameCoverImageUrl,
 		   gr.ShowMilliseconds,           
            ct.ID AS CategoryTypeID,
            ct.Name AS CategoryTypeName,           

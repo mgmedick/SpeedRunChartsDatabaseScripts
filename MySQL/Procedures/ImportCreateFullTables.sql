@@ -130,7 +130,7 @@ BEGIN
 	CREATE TABLE tbl_Game_Full
 	( 
 	    ID int NOT NULL AUTO_INCREMENT, 
-	    Name varchar (100) NOT NULL,
+	    Name varchar (250) NOT NULL,
 	    IsRomHack bit NOT NULL,
 	    YearOfRelease int NULL,
 	    CreatedDate datetime NULL,  
@@ -179,7 +179,7 @@ BEGIN
 	CREATE TABLE tbl_Level_Full 
 	( 
 	    ID int NOT NULL AUTO_INCREMENT, 
-	    Name varchar (100) NOT NULL,
+	    Name varchar (250) NOT NULL,
 	    GameID int NOT NULL,
 	    PRIMARY KEY (ID) 
 	);
@@ -220,7 +220,7 @@ BEGIN
 	CREATE TABLE tbl_Category_Full
 	( 
 	    ID int NOT NULL AUTO_INCREMENT, 
-	    Name varchar (100) NOT NULL,
+	    Name varchar (250) NOT NULL,
 	    GameID int NOT NULL,
 	    CategoryTypeID int NOT NULL,
 	    IsMiscellaneous bit NOT NULL, 
@@ -254,7 +254,7 @@ BEGIN
 	CREATE TABLE tbl_Variable_Full
 	( 
 	    ID int NOT NULL AUTO_INCREMENT, 
-	    Name varchar (100) NOT NULL,
+	    Name varchar (250) NOT NULL,
 	    GameID int NOT NULL,
 	    VariableScopeTypeID int NOT NULL,
 	    CategoryID int NULL,
