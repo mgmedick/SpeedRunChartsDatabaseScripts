@@ -3178,6 +3178,8 @@ UNION ALL
 SELECT 'ImportLastBulkReloadDate',NULL,NULL,NULL
 UNION ALL
 SELECT 'ImportLastUpdateSpeedRunsDate',NULL,NULL,NULL;
+UNION ALL
+SELECT 'IsGetLatestSpeedRunsCheckEnabled',NULL,'1',NULL;
 
 INSERT INTO tbl_TimingMethod (ID, Name)
 SELECT '0', 'GameTime'
