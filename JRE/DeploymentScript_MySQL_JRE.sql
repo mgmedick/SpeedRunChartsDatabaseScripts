@@ -104,6 +104,7 @@ CREATE TABLE tbl_Variable
     CategoryId int NULL,
     LevelId int NULL,
     IsSubCategory bit NOT NULL,
+    SortOrder int NULL,
     Deleted bit NOT NULL,
     PRIMARY KEY (Id)        
 );
@@ -190,7 +191,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_Game AS
   	LEFT JOIN LATERAL (
 		SELECT CONCAT('[', v1.Value, ']') Value
 		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"Id":', CONVERT(v.Id,CHAR), ',"Name":"', v.Name, '","Code":"', v.Code, '","VariableScopeTypeId":', CONVERT(v.VariableScopeTypeId, CHAR), ',"CategoryId":', COALESCE(CONVERT(v.CategoryId, CHAR),''), ',"LevelId":', COALESCE(CONVERT(v.LevelId, CHAR),''), ',"IsSubCategory":', CASE v.IsSubCategory WHEN 1 THEN 'true' ELSE 'false' END), '}' ORDER BY v.Id SEPARATOR ',') Value
+			SELECT GROUP_CONCAT('{', CONCAT('"Id":', CONVERT(v.Id,CHAR), ',"Name":"', v.Name, '","Code":"', v.Code, '","VariableScopeTypeId":', CONVERT(v.VariableScopeTypeId, CHAR), ',"CategoryId":', COALESCE(CONVERT(v.CategoryId, CHAR),''), ',"LevelId":', COALESCE(CONVERT(v.LevelId, CHAR),''), ',"IsSubCategory":', CASE v.IsSubCategory WHEN 1 THEN 'true' ELSE 'false' END), '}' ORDER BY v.SortOrder, v.Id SEPARATOR ',') Value
 	        FROM tbl_Variable v
 	        WHERE v.GameId = g.Id
 	        AND v.Deleted = 0	        
@@ -208,7 +209,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_Game AS
   	LEFT JOIN LATERAL (
 		SELECT CONCAT('[', p1.Value, ']') Value
 		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"Id":', CONVERT(gp.Id,CHAR), '","PlatformId":', CONVERT(p.Id,CHAR), ',"Name":"', p.Name, '","Code":"', p.Code), '"}' ORDER BY p.Id SEPARATOR ',') Value
+			SELECT GROUP_CONCAT('{', CONCAT('"Id":', CONVERT(gp.Id,CHAR), ',"PlatformId":', CONVERT(p.Id,CHAR), ',"Name":"', p.Name, '","Code":"', p.Code), '"}' ORDER BY p.Id SEPARATOR ',') Value
 		    FROM tbl_Game_Platform gp
 		    JOIN tbl_Platform p ON p.Id = gp.PlatformId
 	        WHERE gp.GameId = g.Id
