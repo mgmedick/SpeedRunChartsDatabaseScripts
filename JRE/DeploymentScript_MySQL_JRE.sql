@@ -1,5 +1,8 @@
 USE SpeedRunAppJRE;
 
+/*********************************************/
+-- create/alter tables
+/*********************************************/
 -- tbl_Game
 DROP TABLE IF EXISTS tbl_Game;
 
@@ -291,6 +294,9 @@ CREATE TABLE tbl_Setting
   	PRIMARY KEY (ID)     
 );
 
+/*********************************************/
+-- create/alter views
+/*********************************************/
 -- vw_Game
 DROP VIEW IF EXISTS vw_Game;
 
@@ -411,6 +417,9 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRun AS
         ) v1
     ) Videos ON TRUE;    
    
+/*********************************************/
+-- create/alter procs
+/*********************************************/   
 -- ImportUpdateSpeedRunRanks
 DROP PROCEDURE IF EXISTS ImportUpdateSpeedRunRanks;
 
@@ -484,13 +493,13 @@ BEGIN
 	FROM GameIds g
 	JOIN tbl_Category c ON c.GameId = g.Id
 	LEFT JOIN tbl_Level l ON l.GameId = g.Id	
- 	WHERE COALESCE(g.ModifiedDate, g.ImportedDate) >= LastImportDate  
+ 	WHERE (LastImportDate IS NULL OR COALESCE(g.ModifiedDate, g.ImportedDate) >= LastImportDate)
 	GROUP BY g.Id, c.Id, l.Id, c.IsTimerAscending;
 
 	INSERT INTO LeaderboardKeys (GameId, CategoryId, LevelId)
 	SELECT rn.GameId, rn.CategoryId, rn.LevelId
 	FROM tbl_SpeedRun rn
-	WHERE COALESCE(rn.ModifiedDate, rn.ImportedDate) >= LastImportDate
+	WHERE (LastImportDate IS NULL OR COALESCE(rn.ModifiedDate, rn.ImportedDate) >= LastImportDate)
 	GROUP BY rn.GameId, rn.CategoryId, rn.LevelId;
 
 	INSERT INTO SpeedRunsToUpdate(Id, GameId, CategoryId, LevelId, SubCategoryVariableValues, PlayerIds, GuestIds, PrimaryTime, IsTimerAscending)
