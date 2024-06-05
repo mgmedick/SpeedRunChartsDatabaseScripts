@@ -10,7 +10,7 @@ CREATE TABLE tbl_Game
 ( 
     Id int NOT NULL AUTO_INCREMENT, 
     Name varchar (250) NOT NULL,
-    Code varchar(10) NULL,
+    Code varchar(10) NOT NULL,
 	Abbr varchar(100) NULL,
     ShowMilliseconds bit NOT NULL,
     ReleaseDate datetime NULL,
@@ -62,7 +62,7 @@ CREATE TABLE tbl_Category
 ( 
     Id int NOT NULL AUTO_INCREMENT, 
     Name varchar (250) NOT NULL,
-    Code varchar(10) NULL,
+    Code varchar(10) NOT NULL,
     GameId int NOT NULL,
     CategoryTypeId int NOT NULL,
     IsMiscellaneous bit NOT NULL, 
@@ -78,7 +78,7 @@ CREATE TABLE tbl_Level
 ( 
     Id int NOT NULL AUTO_INCREMENT, 
     Name varchar (250) NOT NULL,
-    Code varchar(10) NULL,
+    Code varchar(10) NOT NULL,
 	GameId int NOT NULL,
 	Deleted bit NOT NULL,
 	PRIMARY KEY (Id)
@@ -101,7 +101,7 @@ CREATE TABLE tbl_Variable
 ( 
     Id int NOT NULL AUTO_INCREMENT, 
     Name varchar (250) NOT NULL,
-    Code varchar(10) NULL,
+    Code varchar(10) NOT NULL,
     GameId int NOT NULL,
     VariableScopeTypeId int NOT NULL,
     CategoryId int NULL,
@@ -119,7 +119,7 @@ CREATE TABLE tbl_VariableValue
 ( 
     Id int NOT NULL AUTO_INCREMENT,
     Name varchar (100) NOT NULL,
-    Code varchar(10) NULL,
+    Code varchar(10) NOT NULL,
     GameId int NOT NULL,   
     VariableId int NOT NULL,  
     IsMiscellaneous bit NOT NULL,
@@ -134,7 +134,7 @@ CREATE TABLE tbl_Platform
 ( 
     Id int NOT NULL AUTO_INCREMENT, 
     Name varchar (50) NOT NULL,
-    Code varchar(10) NULL,    
+    Code varchar(10) NOT NULL,    
     Deleted bit NOT NULL,
     CreatedDate datetime NOT NULL DEFAULT (UTC_TIMESTAMP),  
     ModifiedDate datetime NULL,
@@ -170,7 +170,7 @@ CREATE TABLE tbl_Player
 ( 
     Id int NOT NULL AUTO_INCREMENT, 
     Name varchar (100) NOT NULL,    
-    Code varchar(10) NULL, 
+    Code varchar(100) NOT NULL, 
 	PlayerTypeId int NOT NULL,
     ImportedDate datetime NOT NULL DEFAULT (UTC_TIMESTAMP),
 	ModifiedDate datetime NULL,
@@ -215,7 +215,7 @@ DROP TABLE IF EXISTS tbl_SpeedRun;
 CREATE TABLE tbl_SpeedRun 
 ( 
     Id int NOT NULL AUTO_INCREMENT, 
-    Code varchar(10) NULL,
+    Code varchar(10) NOT NULL,
 	GameId int NOT NULL,
 	CategoryId int NOT NULL,
 	LevelId int NULL,
@@ -365,6 +365,26 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_Game AS
     ) GamePlatforms ON TRUE
    WHERE g.Deleted = 0;
   
+-- vw_Player
+DROP VIEW IF EXISTS vw_Player;
+
+CREATE DEFINER=`root`@`localhost` VIEW vw_Player AS
+
+    SELECT p.Id,
+           p.Name,    
+    	   p.Code,
+           p.PlayerTypeId,
+		   pl.Id AS PlayerLinkId,               
+		   pl.ProfileImageUrl,    
+		   pl.SrcUrl,
+		   pl.TwitchUrl,
+		   pl.HitboxUrl,
+		   pl.YoutubeUrl,
+		   pl.TwitterUrl,
+		   pl.SpeedRunsLiveUrl
+    FROM tbl_Player p
+    JOIN tbl_Player_Link pl ON pl.PlayerId = p.Id;    
+  
 -- vw_SpeedRun
 DROP VIEW IF EXISTS vw_SpeedRun;
 
@@ -381,6 +401,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRun AS
            rn.DateSubmitted,
            rn.VerifyDate,
            rl.Id AS SpeedRunLinkId,
+           rl.SrcUrl,
            Players.Value AS PlayersJson,
            VariableValues.Value AS VariableValuesJson,
            Videos.Value AS VideosJson
@@ -436,6 +457,15 @@ BEGIN
 
 	SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;      
    
+   	DROP TEMPORARY TABLE IF EXISTS LeaderboardKeysFromRuns;
+	CREATE TEMPORARY TABLE LeaderboardKeysFromRuns
+	(
+		GameId INT,
+		CategoryId INT,
+		LevelId INT,
+		IsTimerAscending BIT		
+	);
+
    	DROP TEMPORARY TABLE IF EXISTS LeaderboardKeys;
 	CREATE TEMPORARY TABLE LeaderboardKeys
 	(
@@ -461,7 +491,7 @@ BEGIN
 		  PRIMARY KEY (RowNum)          
 	);
 	CREATE INDEX IdX_SpeedRunsToUpdate_GameId_CategoryId_LevelId_PlusInclude ON SpeedRunsToUpdate (GameId, CategoryId, LevelId, SubCategoryVariableValues, PlayerIds, PrimaryTime);
-	CREATE INDEX IdX_SpeedRunsToUpdate_RankPriority_PlayerIds_GuestIds ON SpeedRunsToUpdate (RankPriority, PlayerIds, GuestIds);
+	CREATE INDEX IdX_SpeedRunsToUpdate_RankPriority_PlayerIds ON SpeedRunsToUpdate (RankPriority, PlayerIds);
 
    	DROP TEMPORARY TABLE IF EXISTS SpeedRunsRanked;
 	CREATE TEMPORARY TABLE SpeedRunsRanked
@@ -472,14 +502,6 @@ BEGIN
 		PRIMARY KEY (RowNum)		
 	);
 
-   	DROP TEMPORARY TABLE IF EXISTS SpeedRunsRankedBatch;
-	CREATE TEMPORARY TABLE SpeedRunsRankedBatch
-	(
-		Id INT,
-		`Rank` INT,
-		PRIMARY KEY (Id)
-	);
-
    	DROP TEMPORARY TABLE IF EXISTS SpeedRunsToUpdateRankPriority;
 	CREATE TEMPORARY TABLE SpeedRunsToUpdateRankPriority
 	(
@@ -488,24 +510,32 @@ BEGIN
 		PRIMARY KEY (RowNum)		
 	);
 
+	IF LastImportDate IS NOT NULL THEN
+		INSERT INTO LeaderboardKeysFromRuns (GameId, CategoryId, LevelId)
+		SELECT rn.GameId, rn.CategoryId, rn.LevelId
+		FROM tbl_SpeedRun rn
+		WHERE COALESCE(rn.ModifiedDate, rn.CreatedDate) >= LastImportDate
+		GROUP BY rn.GameId, rn.CategoryId, rn.LevelId;
+    END IF;	
+
   	INSERT INTO LeaderboardKeys (GameId, CategoryId, LevelId, IsTimerAscending)
 	SELECT g.Id, c.Id, l.Id, COALESCE(c.IsTimerAscending, 0)
-	FROM GameIds g
+	FROM tbl_Game g
 	JOIN tbl_Category c ON c.GameId = g.Id
 	LEFT JOIN tbl_Level l ON l.GameId = g.Id	
- 	WHERE (LastImportDate IS NULL OR COALESCE(g.ModifiedDate, g.ImportedDate) >= LastImportDate)
+ 	WHERE NOT EXISTS (SELECT 1 FROM LeaderboardKeysFromRuns WHERE GameId = g.Id AND CategoryId = c.Id AND COALESCE(LevelId, 0) = COALESCE(l.Id, 0))
+ 	AND (LastImportDate IS NULL OR COALESCE(g.ModifiedDate, g.CreatedDate) >= LastImportDate)
 	GROUP BY g.Id, c.Id, l.Id, c.IsTimerAscending;
 
-	INSERT INTO LeaderboardKeys (GameId, CategoryId, LevelId)
-	SELECT rn.GameId, rn.CategoryId, rn.LevelId
-	FROM tbl_SpeedRun rn
-	WHERE (LastImportDate IS NULL OR COALESCE(rn.ModifiedDate, rn.ImportedDate) >= LastImportDate)
-	GROUP BY rn.GameId, rn.CategoryId, rn.LevelId;
+	INSERT INTO LeaderboardKeys (GameID, CategoryID, LevelID, IsTimerAscending)
+	SELECT rn.GameID, rn.CategoryID, rn.LevelID, COALESCE(c.IsTimerAscending, 0)
+	FROM LeaderboardKeysFromRuns rn
+	JOIN tbl_Category c ON c.ID = rn.CategoryID;
 
-	INSERT INTO SpeedRunsToUpdate(Id, GameId, CategoryId, LevelId, SubCategoryVariableValues, PlayerIds, GuestIds, PrimaryTime, IsTimerAscending)
-    SELECT rn.Id, rn.GameId, rn.CategoryId, rn.LevelId, SubCategoryVariableValues.Value, PlayerIds.Value, GuestIds.Value, rn.PrimaryTime, lb.IsTimerAscending
+	INSERT INTO SpeedRunsToUpdate(Id, GameId, CategoryId, LevelId, SubCategoryVariableValues, PlayerIds, PrimaryTime, IsTimerAscending)
+    SELECT rn.Id, rn.GameId, rn.CategoryId, rn.LevelId, SubCategoryVariableValues.Value, PlayerIds.Value, rn.PrimaryTime, lb.IsTimerAscending
     FROM tbl_SpeedRun rn
-    JOIN LeaderboardKeys lb ON lb.GameId = rn.GameId AND lb.CategoryId = rn.CategoryId AND COALESCE(lb.LevelId,'') = COALESCE(rn.LevelId,'')
+    JOIN LeaderboardKeys lb ON lb.GameId = rn.GameId AND lb.CategoryId = rn.CategoryId AND COALESCE(lb.LevelId, 0) = COALESCE(rn.LevelId, 0)
   	LEFT JOIN LATERAL (
 		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueId,CHAR) ORDER BY rv.Id SEPARATOR ',') Value
 	    FROM tbl_SpeedRun_VariableValue rv
@@ -567,7 +597,7 @@ BEGIN
 		  
 			SET RowCount = RowCount + BatchCount;
 	    END WHILE;
-
+   
 	   	SET RowCount = 0;
     	SELECT COUNT(*) INTO MaxRowCount FROM SpeedRunsRanked;  	   
         WHILE RowCount < MaxRowCount DO	   
@@ -575,6 +605,7 @@ BEGIN
 			CREATE TEMPORARY TABLE SpeedRunsRankedBatch
 			(
 				Id INT,
+				`Rank` INT,				
 				PRIMARY KEY (Id)		
 			);
 		
@@ -590,7 +621,7 @@ BEGIN
 		  	SET rn.`Rank` = rn1.`Rank`;
 		  
   			SET RowCount = RowCount + BatchCount;		
-	    END WHILE;		  
+	    END WHILE;		
     ELSE
 		SELECT rn.RankPriority, rn.Id, rn.GameId, rn.CategoryId, rn.LevelId, rn.SubCategoryVariableValues, rn.PlayerIds, rn.GuestIds, rn.PrimaryTime
         FROM SpeedRunsToUpdate rn
@@ -601,7 +632,7 @@ BEGIN
         FROM SpeedRunsToUpdate rn
         JOIN SpeedRunsRanked rn1 ON rn1.Id = rn.Id
         WHERE rn.SubCategoryVariableValues IS NOT NULL
-        ORDER BY rn.GameId, rn.CategoryId, rn.LevelId, rn.SubCategoryVariableValues, rn1.`Rank`;       
+        ORDER BY rn.GameId, rn.CategoryId, rn.LevelId, rn.SubCategoryVariableValues, rn1.`Rank`;     
     END IF;
 END $$
 DELIMITER ;
