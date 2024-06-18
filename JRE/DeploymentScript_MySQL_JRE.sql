@@ -281,6 +281,17 @@ CREATE TABLE tbl_SpeedRun_Video
 	PRIMARY KEY (Id) 	
 );
 
+-- tbl_SpeedRun_Ordered
+DROP TABLE IF EXISTS tbl_SpeedRun_Ordered;
+
+CREATE TABLE tbl_SpeedRun_Ordered 
+( 
+    Id int NOT NULL AUTO_INCREMENT,
+    SpeedRunId int NOT NULL,
+	Deleted bit NOT NULL,    
+	PRIMARY KEY (Id) 	
+);
+
 -- tbl_Setting
 DROP TABLE IF EXISTS tbl_Setting;
 
@@ -438,6 +449,25 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRun AS
         ) v1
     ) Videos ON TRUE;    
    
+-- vw_SpeedRunOrdered
+DROP VIEW IF EXISTS vw_SpeedRunOrdered;
+
+CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunOrdered AS
+
+    SELECT dn.Id,
+    	   rn.Id AS SpeedRunId,
+    	   rn.Code,
+           rn.GameId,
+           rn.CategoryId,
+           rn.LevelId,       
+           rn.PlatformId,
+           rn.Rank,
+           rn.PrimaryTime,
+           rn.DateSubmitted,
+           rn.VerifyDate
+    FROM tbl_SpeedRun_Ordered dn
+    JOIN tbl_SpeedRun rn ON rn.Id = dn.SpeedRunId;
+   
 /*********************************************/
 -- create/alter procs
 /*********************************************/   
@@ -514,7 +544,7 @@ BEGIN
 		INSERT INTO LeaderboardKeysFromRuns (GameId, CategoryId, LevelId)
 		SELECT rn.GameId, rn.CategoryId, rn.LevelId
 		FROM tbl_SpeedRun rn
-		WHERE COALESCE(rn.ModifiedDate, rn.CreatedDate) >= LastImportDate
+		WHERE COALESCE(rn.ModifiedDate, rn.CreatedDate) > LastImportDate
 		GROUP BY rn.GameId, rn.CategoryId, rn.LevelId;
     END IF;	
 
@@ -524,7 +554,7 @@ BEGIN
 	JOIN tbl_Category c ON c.GameId = g.Id
 	LEFT JOIN tbl_Level l ON l.GameId = g.Id	
  	WHERE NOT EXISTS (SELECT 1 FROM LeaderboardKeysFromRuns WHERE GameId = g.Id AND CategoryId = c.Id AND COALESCE(LevelId, 0) = COALESCE(l.Id, 0))
- 	AND (LastImportDate IS NULL OR COALESCE(g.ModifiedDate, g.CreatedDate) >= LastImportDate)
+ 	AND (LastImportDate IS NULL OR COALESCE(g.ModifiedDate, g.CreatedDate) > LastImportDate)
 	GROUP BY g.Id, c.Id, l.Id, c.IsTimerAscending;
 
 	INSERT INTO LeaderboardKeys (GameID, CategoryID, LevelID, IsTimerAscending)
@@ -637,6 +667,39 @@ BEGIN
 END $$
 DELIMITER ;
 
+-- ImportUpdateSpeedRunOrdered
+DROP PROCEDURE IF EXISTS ImportUpdateSpeedRunOrdered;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE ImportUpdateSpeedRunOrdered(
+	IN LastImportDate DATETIME
+)
+BEGIN	
+	
+    DECLARE CurrDate DATETIME DEFAULT UTC_TIMESTAMP;
+	DECLARE StartDate DATETIME DEFAULT DATE_ADD(CurrDate, INTERVAL -3 MONTH);
+
+	SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+
+	UPDATE tbl_SpeedRun_Ordered dn
+	JOIN tbl_SpeedRun rn ON rn.Id = dn.SpeedRunId
+	SET dn.Deleted = 1
+	WHERE COALESCE(rn.VerifyDate, '1753-01-01 00:00:00') < StartDate;
+
+	INSERT INTO tbl_SpeedRun_Ordered (SpeedRunId, Deleted)
+	SELECT rn.Id, 0
+	FROM tbl_SpeedRun rn
+	WHERE rn.VerifyDate >= StartDate
+	AND (LastImportDate IS NULL OR rn.CreatedDate > LastImportDate)
+	AND NOT EXISTS (SELECT 1 FROM tbl_SpeedRun_Ordered rn2 WHERE rn2.SpeedRunId = rn.Id)
+	ORDER BY rn.VerifyDate;
+	
+END $$
+DELIMITER ;
+
+/*********************************************/
+-- populate tables
+/*********************************************/
 INSERT INTO tbl_Setting(Name, Str, Num, Dte)
 SELECT 'LastImportDate', NULL, NULL, NULL
 UNION ALL
