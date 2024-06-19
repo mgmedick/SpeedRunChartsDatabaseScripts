@@ -313,9 +313,9 @@ DROP VIEW IF EXISTS vw_Game;
 
 CREATE DEFINER=`root`@`localhost` VIEW vw_Game AS
 
-    SELECT g.Id, g.Name, g.Code, g.Abbr, g.ShowMilliseconds, g.ReleaseDate, gl.Id AS GameLinkId, gl.CoverImageUrl, gl.SrcUrl,
+    SELECT g.Id, g.Name, g.Code, g.Abbr, g.ShowMilliseconds, g.ReleaseDate, g.CreatedDate, g.ModifiedDate, gl.Id AS GameLinkId, gl.CoverImageUrl, gl.SrcUrl,
         GameCategoryTypes.Value AS GameCategoryTypesJson, Categories.Value AS CategoriesJson, Levels.Value AS LevelsJson,
-        Variables.Value AS VariablesJson, VariableValues.Value AS VariableValuesJson, GamePlatforms.Value AS GamePlatformsJson      
+        Variables.Value AS VariablesJson, VariableValues.Value AS VariableValuesJson, GamePlatforms.Value AS GamePlatformsJson
     FROM tbl_Game g
     JOIN tbl_Game_Link gl ON gl.GameId = g.Id
 	LEFT JOIN LATERAL (
