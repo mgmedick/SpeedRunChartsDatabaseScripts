@@ -228,6 +228,8 @@ CREATE TABLE tbl_SpeedRun
 	ModifiedDate datetime NULL,
   	PRIMARY KEY (Id) 	
 );
+CREATE INDEX IDX_tbl_SpeedRun_GameId_CategoryId_LevelId ON tbl_SpeedRun (GameId, CategoryId, LevelId);
+CREATE INDEX IDX_tbl_SpeedRun_VerifyDate ON tbl_SpeedRun (VerifyDate);
 
 -- tbl_SpeedRun_Link
 DROP TABLE IF EXISTS tbl_SpeedRun_Link;
@@ -331,7 +333,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_Game AS
 	LEFT JOIN LATERAL (
 		SELECT CONCAT('[', c1.Value, ']') Value
 		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"Id":', CONVERT(c.Id,CHAR), ',"Name":"', c.Name, '","Code":"', c.Code, '","CategoryTypeId":', CONVERT(c.CategoryTypeId,CHAR), ',"IsMiscellaneous":', CASE c.IsMiscellaneous WHEN 1 THEN 'true' ELSE 'false' END, ',"IsTimerAscending":', CASE c.IsTimerAscending WHEN 1 THEN 'true' ELSE 'false' END), '}' ORDER BY c.IsMiscellaneous, c.Id SEPARATOR ',') Value
+			SELECT GROUP_CONCAT('{', CONCAT('"Id":', CONVERT(c.Id,CHAR), ',"Name":"', REPLACE(c.Name,"\"","\\\""), '","Code":"', c.Code, '","CategoryTypeId":', CONVERT(c.CategoryTypeId,CHAR), ',"IsMiscellaneous":', CASE c.IsMiscellaneous WHEN 1 THEN 'true' ELSE 'false' END, ',"IsTimerAscending":', CASE c.IsTimerAscending WHEN 1 THEN 'true' ELSE 'false' END), '}' ORDER BY c.IsMiscellaneous, c.Id SEPARATOR ',') Value
 	        FROM tbl_Category c
 	        WHERE c.GameId = g.Id
 	        AND c.Deleted = 0	        
@@ -340,7 +342,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_Game AS
 	LEFT JOIN LATERAL (
 		SELECT CONCAT('[', l1.Value, ']') Value
 		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"Id":', CONVERT(l.Id,CHAR), ',"Name":"', l.Name), '","Code":"', l.Code, '"}' ORDER BY l.Id SEPARATOR ',') Value
+			SELECT GROUP_CONCAT('{', CONCAT('"Id":', CONVERT(l.Id,CHAR), ',"Name":"', REPLACE(l.Name,"\"","\\\""), '","Code":"', l.Code), '"}' ORDER BY l.Id SEPARATOR ',') Value
 	        FROM tbl_Level l
 	        WHERE l.GameId = g.Id
 	        AND l.Deleted = 0
@@ -349,7 +351,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_Game AS
   	LEFT JOIN LATERAL (
 		SELECT CONCAT('[', v1.Value, ']') Value
 		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"Id":', CONVERT(v.Id,CHAR), ',"Name":"', v.Name, '","Code":"', v.Code, '","VariableScopeTypeId":', CONVERT(v.VariableScopeTypeId, CHAR), ',"CategoryId":', COALESCE(CONVERT(v.CategoryId, CHAR),'null'), ',"LevelId":', COALESCE(CONVERT(v.LevelId, CHAR),'null'), ',"IsSubCategory":', CASE v.IsSubCategory WHEN 1 THEN 'true' ELSE 'false' END), '}' ORDER BY v.SortOrder, v.Id SEPARATOR ',') Value
+			SELECT GROUP_CONCAT('{', CONCAT('"Id":', CONVERT(v.Id,CHAR), ',"Name":"', REPLACE(v.Name,"\"","\\\""), '","Code":"', v.Code, '","VariableScopeTypeId":', CONVERT(v.VariableScopeTypeId, CHAR), ',"CategoryId":', COALESCE(CONVERT(v.CategoryId, CHAR),'null'), ',"LevelId":', COALESCE(CONVERT(v.LevelId, CHAR),'null'), ',"IsSubCategory":', CASE v.IsSubCategory WHEN 1 THEN 'true' ELSE 'false' END), '}' ORDER BY v.SortOrder, v.Id SEPARATOR ',') Value
 	        FROM tbl_Variable v
 	        WHERE v.GameId = g.Id
 	        AND v.Deleted = 0	        
@@ -358,7 +360,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_Game AS
   	LEFT JOIN LATERAL (
 		SELECT CONCAT('[', v2.Value, ']') Value
 		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"Id":', CONVERT(v.Id,CHAR), ',"Name":"', v.Name, '","Code":"', v.Code, '","VariableId":', CONVERT(v.VariableId,CHAR)), '}' ORDER BY v.Id SEPARATOR ',') Value
+			SELECT GROUP_CONCAT('{', CONCAT('"Id":', CONVERT(v.Id,CHAR), ',"Name":"', REPLACE(v.Name,"\"","\\\""), '","Code":"', v.Code, '","VariableId":', CONVERT(v.VariableId,CHAR)), '}' ORDER BY v.Id SEPARATOR ',') Value
 	        FROM tbl_VariableValue v
 	        WHERE v.GameId = g.Id
 	        AND v.Deleted = 0	        
