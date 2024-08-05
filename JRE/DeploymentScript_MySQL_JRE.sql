@@ -3,12 +3,31 @@ USE SpeedRunAppJRE;
 /*********************************************/
 -- create/alter tables
 /*********************************************/
+-- tbl_User
+DROP TABLE IF EXISTS tbl_User;
+
+CREATE TABLE tbl_User(
+	ID int NOT NULL AUTO_INCREMENT,
+	Username varchar(255) NOT NULL,
+	Email varchar(100) NOT NULL,
+	`Password` varchar(255) NOT NULL,
+	PromptToChange bit NOT NULL,
+	Locked bit NOT NULL,
+	Active bit NOT NULL,
+	Deleted bit NOT NULL,
+	CreatedBy int NOT NULL,
+	CreatedDate datetime NOT NULL,
+	ModifiedBy int NULL,
+	ModifiedDate datetime NULL,
+	PRIMARY KEY (ID)	
+);
+
 -- tbl_Game
 DROP TABLE IF EXISTS tbl_Game;
 
 CREATE TABLE tbl_Game 
 ( 
-    Id int NOT NULL AUTO_INCREMENT, 
+    ID int NOT NULL AUTO_INCREMENT, 
     Name varchar (250) NOT NULL,
     Code varchar(10) NOT NULL,
 	Abbr varchar(100) NULL,
@@ -18,7 +37,7 @@ CREATE TABLE tbl_Game
     SrcCreatedDate datetime NULL,
     CreatedDate datetime NOT NULL DEFAULT (UTC_TIMESTAMP),  
     ModifiedDate datetime NULL,
-	PRIMARY KEY (Id)
+	PRIMARY KEY (ID)
 );
 
 -- tbl_Game_Link
@@ -26,11 +45,11 @@ DROP TABLE IF EXISTS tbl_Game_Link;
 
 CREATE TABLE tbl_Game_Link 
 (
-    Id int NOT NULL AUTO_INCREMENT, 
-    GameId int NOT NULL,
+    ID int NOT NULL AUTO_INCREMENT, 
+    GameID int NOT NULL,
 	CoverImageUrl varchar (80) NULL,
     SrcUrl varchar (125) NOT NULL,
-   	PRIMARY KEY (Id)     
+   	PRIMARY KEY (ID)     
 );
 
 -- tbl_CategoryType
@@ -38,9 +57,9 @@ DROP TABLE IF EXISTS tbl_CategoryType;
 
 CREATE TABLE tbl_CategoryType 
 ( 
-    Id int NOT NULL,
+    ID int NOT NULL,
     Name varchar (25) NOT NULL,
-    PRIMARY KEY (Id) 
+    PRIMARY KEY (ID) 
 );
 
 -- tbl_Game_CategoryType
@@ -48,11 +67,11 @@ DROP TABLE IF EXISTS tbl_Game_CategoryType;
 
 CREATE TABLE tbl_Game_CategoryType 
 (
-    Id int NOT NULL AUTO_INCREMENT, 
-    GameId int NOT NULL,
-    CategoryTypeId int NOT NULL,
+    ID int NOT NULL AUTO_INCREMENT, 
+    GameID int NOT NULL,
+    CategoryTypeID int NOT NULL,
     Deleted bit NOT NULL,    
-    PRIMARY KEY (Id) 
+    PRIMARY KEY (ID) 
 );
 
 -- tbl_Category
@@ -60,15 +79,15 @@ DROP TABLE IF EXISTS tbl_Category;
 
 CREATE TABLE tbl_Category
 ( 
-    Id int NOT NULL AUTO_INCREMENT, 
+    ID int NOT NULL AUTO_INCREMENT, 
     Name varchar (250) NOT NULL,
     Code varchar(10) NOT NULL,
-    GameId int NOT NULL,
-    CategoryTypeId int NOT NULL,
+    GameID int NOT NULL,
+    CategoryTypeID int NOT NULL,
     IsMiscellaneous bit NOT NULL, 
     IsTimerAscending bit NOT NULL,
     Deleted bit NOT NULL,
-    PRIMARY KEY (Id)     
+    PRIMARY KEY (ID)     
 );
 
 -- tbl_Level
@@ -76,12 +95,12 @@ DROP TABLE IF EXISTS tbl_Level;
 
 CREATE TABLE tbl_Level 
 ( 
-    Id int NOT NULL AUTO_INCREMENT, 
+    ID int NOT NULL AUTO_INCREMENT, 
     Name varchar (250) NOT NULL,
     Code varchar(10) NOT NULL,
-	GameId int NOT NULL,
+	GameID int NOT NULL,
 	Deleted bit NOT NULL,
-	PRIMARY KEY (Id)
+	PRIMARY KEY (ID)
 );
 
 -- tbl_VariableScopeType
@@ -89,9 +108,9 @@ DROP TABLE IF EXISTS tbl_VariableScopeType;
 
 CREATE TABLE tbl_VariableScopeType 
 ( 
-    Id int NOT NULL,
+    ID int NOT NULL,
     Name varchar (25) NOT NULL,
-    PRIMARY KEY (Id)      
+    PRIMARY KEY (ID)      
 );
 
 -- tbl_Variable
@@ -99,17 +118,17 @@ DROP TABLE IF EXISTS tbl_Variable;
 
 CREATE TABLE tbl_Variable
 ( 
-    Id int NOT NULL AUTO_INCREMENT, 
+    ID int NOT NULL AUTO_INCREMENT, 
     Name varchar (250) NOT NULL,
     Code varchar(10) NOT NULL,
-    GameId int NOT NULL,
-    VariableScopeTypeId int NOT NULL,
-    CategoryId int NULL,
-    LevelId int NULL,
+    GameID int NOT NULL,
+    VariableScopeTypeID int NOT NULL,
+    CategoryID int NULL,
+    LevelID int NULL,
     IsSubCategory bit NOT NULL,
     SortOrder int NULL,
     Deleted bit NOT NULL,
-    PRIMARY KEY (Id)        
+    PRIMARY KEY (ID)        
 );
 
 -- tbl_VariableValue
@@ -117,14 +136,14 @@ DROP TABLE IF EXISTS tbl_VariableValue;
 
 CREATE TABLE tbl_VariableValue
 ( 
-    Id int NOT NULL AUTO_INCREMENT,
+    ID int NOT NULL AUTO_INCREMENT,
     Name varchar (100) NOT NULL,
     Code varchar(10) NOT NULL,
-    GameId int NOT NULL,   
-    VariableId int NOT NULL,  
+    GameID int NOT NULL,   
+    VariableID int NOT NULL,  
     IsMiscellaneous bit NOT NULL,
     Deleted bit NOT NULL,
-    PRIMARY KEY (Id)      
+    PRIMARY KEY (ID)      
 );
 
 -- tbl_Platform
@@ -132,13 +151,13 @@ DROP TABLE IF EXISTS tbl_Platform;
 
 CREATE TABLE tbl_Platform 
 ( 
-    Id int NOT NULL AUTO_INCREMENT, 
+    ID int NOT NULL AUTO_INCREMENT, 
     Name varchar (50) NOT NULL,
     Code varchar(10) NOT NULL,    
     Deleted bit NOT NULL,
     CreatedDate datetime NOT NULL DEFAULT (UTC_TIMESTAMP),  
     ModifiedDate datetime NULL,
-    PRIMARY KEY (Id)   
+    PRIMARY KEY (ID)   
 );
 
 -- tbl_Game_Platform
@@ -146,11 +165,11 @@ DROP TABLE IF EXISTS tbl_Game_Platform;
 
 CREATE TABLE tbl_Game_Platform
 (     
-    Id int NOT NULL AUTO_INCREMENT, 
-    GameId int NOT NULL,
-    PlatformId int NOT NULL,
+    ID int NOT NULL AUTO_INCREMENT, 
+    GameID int NOT NULL,
+    PlatformID int NOT NULL,
     Deleted bit NOT NULL,    
-    PRIMARY KEY (Id)     
+    PRIMARY KEY (ID)     
 );
 
 -- tbl_PlayerType
@@ -158,9 +177,9 @@ DROP TABLE IF EXISTS tbl_PlayerType;
 
 CREATE TABLE tbl_PlayerType 
 ( 
-    Id int NOT NULL,
+    ID int NOT NULL,
     Name varchar (25) NOT NULL,
-    PRIMARY KEY (Id)      
+    PRIMARY KEY (ID)      
 );
 
 -- tbl_Player
@@ -168,13 +187,13 @@ DROP TABLE IF EXISTS tbl_Player;
 
 CREATE TABLE tbl_Player
 ( 
-    Id int NOT NULL AUTO_INCREMENT, 
+    ID int NOT NULL AUTO_INCREMENT, 
     Name varchar (100) NOT NULL,    
     Code varchar(100) NOT NULL, 
-	PlayerTypeId int NOT NULL,
+	PlayerTypeID int NOT NULL,
     ImportedDate datetime NOT NULL DEFAULT (UTC_TIMESTAMP),
 	ModifiedDate datetime NULL,
-    PRIMARY KEY (Id)
+    PRIMARY KEY (ID)
 );
 
 -- tbl_Player_NameStyle
@@ -182,14 +201,14 @@ DROP TABLE IF EXISTS tbl_Player_NameStyle;
 
 CREATE TABLE tbl_Player_NameStyle
 ( 
-    Id int NOT NULL AUTO_INCREMENT,
-    PlayerId int NOT NULL,
+    ID int NOT NULL AUTO_INCREMENT,
+    PlayerID int NOT NULL,
     IsGradient bit NOT NULL,
     ColorLight VARCHAR(10) NULL,
     ColorDark VARCHAR(10) NULL,    
     ColorToLight VARCHAR(10) NULL,
     ColorToDark VARCHAR(10) NULL,    
-    PRIMARY KEY (Id)
+    PRIMARY KEY (ID)
 );
 
 -- tbl_Player_Link
@@ -197,8 +216,8 @@ DROP TABLE IF EXISTS tbl_Player_Link;
 
 CREATE TABLE tbl_Player_Link
 ( 
-    Id int NOT NULL AUTO_INCREMENT,
-    PlayerId int NOT NULL,
+    ID int NOT NULL AUTO_INCREMENT,
+    PlayerID int NOT NULL,
     ProfileImageUrl varchar (1000) NULL,    
 	SrcUrl varchar (1000) NULL, 
     TwitchUrl varchar (1000) NULL,
@@ -206,7 +225,7 @@ CREATE TABLE tbl_Player_Link
     YoutubeUrl varchar (1000) NULL,
     TwitterUrl varchar (1000) NULL,
     SpeedRunsLiveUrl varchar (1000) NULL,
-    PRIMARY KEY (Id)   
+    PRIMARY KEY (ID)   
 );
 
 -- tbl_SpeedRun
@@ -214,21 +233,22 @@ DROP TABLE IF EXISTS tbl_SpeedRun;
 
 CREATE TABLE tbl_SpeedRun 
 ( 
-    Id int NOT NULL AUTO_INCREMENT, 
+    ID int NOT NULL AUTO_INCREMENT, 
     Code varchar(10) NOT NULL,
-	GameId int NOT NULL,
-	CategoryId int NOT NULL,
-	LevelId int NULL,
-	PlatformId int NULL,
+	GameID int NOT NULL,
+	CategoryTypeID int NOT NULL,
+	CategoryID int NOT NULL,
+	LevelID int NULL,
+	PlatformID int NULL,
 	`Rank` int NULL,
 	PrimaryTime bigint NOT NULL,
 	DateSubmitted datetime NULL,
 	VerifyDate datetime NULL,
 	CreatedDate datetime NOT NULL DEFAULT (UTC_TIMESTAMP),
 	ModifiedDate datetime NULL,
-  	PRIMARY KEY (Id) 	
+  	PRIMARY KEY (ID) 	
 );
-CREATE INDEX IDX_tbl_SpeedRun_GameId_CategoryId_LevelId ON tbl_SpeedRun (GameId, CategoryId, LevelId);
+CREATE INDEX IDX_tbl_SpeedRun_GameID_CategoryID_LevelID ON tbl_SpeedRun (GameID, CategoryID, LevelID);
 CREATE INDEX IDX_tbl_SpeedRun_VerifyDate ON tbl_SpeedRun (VerifyDate);
 
 -- tbl_SpeedRun_Link
@@ -236,10 +256,10 @@ DROP TABLE IF EXISTS tbl_SpeedRun_Link;
 
 CREATE TABLE tbl_SpeedRun_Link 
 ( 
-	Id int NOT NULL AUTO_INCREMENT,
-    SpeedRunId int NOT NULL,
+	ID int NOT NULL AUTO_INCREMENT,
+    SpeedRunID int NOT NULL,
 	SrcUrl varchar(1000) NOT NULL,
- 	PRIMARY KEY (Id) 	
+ 	PRIMARY KEY (ID) 	
 );
 
 -- tbl_SpeedRun_Player
@@ -247,11 +267,11 @@ DROP TABLE IF EXISTS tbl_SpeedRun_Player;
 
 CREATE TABLE tbl_SpeedRun_Player 
 ( 
-    Id int NOT NULL AUTO_INCREMENT,
-    SpeedRunId int NOT NULL,
-    PlayerId int NOT NULL,
+    ID int NOT NULL AUTO_INCREMENT,
+    SpeedRunID int NOT NULL,
+    PlayerID int NOT NULL,
 	Deleted bit NOT NULL,
-	PRIMARY KEY (Id)	 
+	PRIMARY KEY (ID)	 
 );
 
 -- tbl_SpeedRun_VariableValue
@@ -259,12 +279,12 @@ DROP TABLE IF EXISTS tbl_SpeedRun_VariableValue;
 
 CREATE TABLE tbl_SpeedRun_VariableValue 
 ( 
-    Id int NOT NULL AUTO_INCREMENT,
-    SpeedRunId int NOT NULL,
-    VariableId int NOT NULL,
-    VariableValueId int NOT NULL,
+    ID int NOT NULL AUTO_INCREMENT,
+    SpeedRunID int NOT NULL,
+    VariableID int NOT NULL,
+    VariableValueID int NOT NULL,
     Deleted bit NOT NULL,
-	PRIMARY KEY (Id)    
+	PRIMARY KEY (ID)    
 ); 
 
 -- tbl_SpeedRun_Video
@@ -272,15 +292,15 @@ DROP TABLE IF EXISTS tbl_SpeedRun_Video;
 
 CREATE TABLE tbl_SpeedRun_Video 
 ( 
-    Id int NOT NULL AUTO_INCREMENT,
-    SpeedRunId int NOT NULL,
+    ID int NOT NULL AUTO_INCREMENT,
+    SpeedRunID int NOT NULL,
     VideoLinkUrl varchar (500) NOT NULL,
     EmbeddedVideoLinkUrl varchar (500) NULL,
 	ThumbnailLinkUrl varchar(500) NULL,
 	ChannelCode varchar(50) NULL,
 	ViewCount bigint NULL,
 	Deleted bit NOT NULL,
-	PRIMARY KEY (Id) 	
+	PRIMARY KEY (ID) 	
 );
 
 -- tbl_SpeedRun_Ordered
@@ -288,10 +308,10 @@ DROP TABLE IF EXISTS tbl_SpeedRun_Ordered;
 
 CREATE TABLE tbl_SpeedRun_Ordered 
 ( 
-    Id int NOT NULL AUTO_INCREMENT,
-    SpeedRunId int NOT NULL,
+    ID int NOT NULL AUTO_INCREMENT,
+    SpeedRunID int NOT NULL,
 	Deleted bit NOT NULL,    
-	PRIMARY KEY (Id) 	
+	PRIMARY KEY (ID) 	
 );
 
 -- tbl_Setting
@@ -299,7 +319,7 @@ DROP TABLE IF EXISTS tbl_Setting;
 
 CREATE TABLE tbl_Setting 
 ( 
-    Id int NOT NULL AUTO_INCREMENT,
+    ID int NOT NULL AUTO_INCREMENT,
     Name varchar (50) NOT NULL,
     Str varchar (500) NULL,
     Num int NULL,
@@ -315,64 +335,62 @@ DROP VIEW IF EXISTS vw_Game;
 
 CREATE DEFINER=`root`@`localhost` VIEW vw_Game AS
 
-    SELECT g.Id, g.Name, g.Code, g.Abbr, g.ShowMilliseconds, g.ReleaseDate, g.CreatedDate, g.ModifiedDate, gl.Id AS GameLinkId, gl.CoverImageUrl, gl.SrcUrl,
+    SELECT g.ID, g.Name, g.Code, g.Abbr, g.ShowMilliseconds, g.ReleaseDate, g.CreatedDate, g.ModifiedDate, gl.ID AS GameLinkID, gl.CoverImageUrl, gl.SrcUrl,
         GameCategoryTypes.Value AS GameCategoryTypesJson, Categories.Value AS CategoriesJson, Levels.Value AS LevelsJson,
         Variables.Value AS VariablesJson, VariableValues.Value AS VariableValuesJson, GamePlatforms.Value AS GamePlatformsJson
     FROM tbl_Game g
-    JOIN tbl_Game_Link gl ON gl.GameId = g.Id
+    JOIN tbl_Game_Link gl ON gl.GameID = g.ID
 	LEFT JOIN LATERAL (
 		SELECT CONCAT('[', ct1.Value, ']') Value
 		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"Id":', CONVERT(gc.Id,CHAR), ',"CategoryTypeId":', CONVERT(ct.Id,CHAR), ',"Name":"', ct.Name), '"}' ORDER BY gc.Id SEPARATOR ',') Value
-		    FROM tbl_Game_CategoryType gc
-		    JOIN tbl_CategoryType ct ON ct.Id = gc.CategoryTypeId
-	        WHERE gc.GameId = g.Id
+			SELECT GROUP_CONCAT('{', CONCAT('"ID":', CONVERT(gc.ID,CHAR), ',"CategoryTypeID":', CONVERT(gc.CategoryTypeID,CHAR)), '}' ORDER BY gc.ID SEPARATOR ',') Value
+		    FROM tbl_Game_CategoryType gc		    
+	        WHERE gc.GameID = g.ID
 	        AND gc.Deleted = 0
         ) ct1
     ) GameCategoryTypes ON TRUE
 	LEFT JOIN LATERAL (
 		SELECT CONCAT('[', c1.Value, ']') Value
 		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"Id":', CONVERT(c.Id,CHAR), ',"Name":"', REPLACE(c.Name,"\"","\\\""), '","Code":"', c.Code, '","CategoryTypeId":', CONVERT(c.CategoryTypeId,CHAR), ',"IsMiscellaneous":', CASE c.IsMiscellaneous WHEN 1 THEN 'true' ELSE 'false' END, ',"IsTimerAscending":', CASE c.IsTimerAscending WHEN 1 THEN 'true' ELSE 'false' END), '}' ORDER BY c.IsMiscellaneous, c.Id SEPARATOR ',') Value
+			SELECT GROUP_CONCAT('{', CONCAT('"ID":', CONVERT(c.ID,CHAR), ',"Name":"', REPLACE(REPLACE(c.Name,"\\","\\\\"),"\"","\\\""), '","Code":"', c.Code, '","CategoryTypeID":', CONVERT(c.CategoryTypeID,CHAR), ',"IsMiscellaneous":', CASE c.IsMiscellaneous WHEN 1 THEN 'true' ELSE 'false' END, ',"IsTimerAscending":', CASE c.IsTimerAscending WHEN 1 THEN 'true' ELSE 'false' END), '}' ORDER BY c.IsMiscellaneous, c.ID SEPARATOR ',') Value
 	        FROM tbl_Category c
-	        WHERE c.GameId = g.Id
+	        WHERE c.GameID = g.ID
 	        AND c.Deleted = 0	        
         ) c1
     ) Categories ON TRUE    
 	LEFT JOIN LATERAL (
 		SELECT CONCAT('[', l1.Value, ']') Value
 		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"Id":', CONVERT(l.Id,CHAR), ',"Name":"', REPLACE(l.Name,"\"","\\\""), '","Code":"', l.Code), '"}' ORDER BY l.Id SEPARATOR ',') Value
+			SELECT GROUP_CONCAT('{', CONCAT('"ID":', CONVERT(l.ID,CHAR), ',"Name":"', REPLACE(REPLACE(l.Name,"\\","\\\\"),"\"","\\\""), '","Code":"', l.Code), '"}' ORDER BY l.ID SEPARATOR ',') Value
 	        FROM tbl_Level l
-	        WHERE l.GameId = g.Id
+	        WHERE l.GameID = g.ID
 	        AND l.Deleted = 0
         ) l1
     ) Levels ON TRUE
   	LEFT JOIN LATERAL (
 		SELECT CONCAT('[', v1.Value, ']') Value
 		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"Id":', CONVERT(v.Id,CHAR), ',"Name":"', REPLACE(v.Name,"\"","\\\""), '","Code":"', v.Code, '","VariableScopeTypeId":', CONVERT(v.VariableScopeTypeId, CHAR), ',"CategoryId":', COALESCE(CONVERT(v.CategoryId, CHAR),'null'), ',"LevelId":', COALESCE(CONVERT(v.LevelId, CHAR),'null'), ',"IsSubCategory":', CASE v.IsSubCategory WHEN 1 THEN 'true' ELSE 'false' END), '}' ORDER BY v.SortOrder, v.Id SEPARATOR ',') Value
+			SELECT GROUP_CONCAT('{', CONCAT('"ID":', CONVERT(v.ID,CHAR), ',"Name":"', REPLACE(REPLACE(v.Name,"\\","\\\\"),"\"","\\\""), '","Code":"', v.Code, '","VariableScopeTypeID":', CONVERT(v.VariableScopeTypeID, CHAR), ',"CategoryID":', COALESCE(CONVERT(v.CategoryID, CHAR),'null'), ',"LevelID":', COALESCE(CONVERT(v.LevelID, CHAR),'null'), ',"IsSubCategory":', CASE v.IsSubCategory WHEN 1 THEN 'true' ELSE 'false' END), '}' ORDER BY v.SortOrder, v.ID SEPARATOR ',') Value
 	        FROM tbl_Variable v
-	        WHERE v.GameId = g.Id
+	        WHERE v.GameID = g.ID
 	        AND v.Deleted = 0	        
         ) v1
     ) Variables ON TRUE   
   	LEFT JOIN LATERAL (
 		SELECT CONCAT('[', v2.Value, ']') Value
 		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"Id":', CONVERT(v.Id,CHAR), ',"Name":"', REPLACE(v.Name,"\"","\\\""), '","Code":"', v.Code, '","VariableId":', CONVERT(v.VariableId,CHAR)), '}' ORDER BY v.Id SEPARATOR ',') Value
+			SELECT GROUP_CONCAT('{', CONCAT('"ID":', CONVERT(v.ID,CHAR), ',"Name":"', REPLACE(REPLACE(v.Name,"\\","\\\\"),"\"","\\\""), '","Code":"', v.Code, '","VariableID":', CONVERT(v.VariableID,CHAR)), '}' ORDER BY v.ID SEPARATOR ',') Value
 	        FROM tbl_VariableValue v
-	        WHERE v.GameId = g.Id
+	        WHERE v.GameID = g.ID
 	        AND v.Deleted = 0	        
         ) v2
     ) VariableValues ON TRUE 
   	LEFT JOIN LATERAL (
 		SELECT CONCAT('[', p1.Value, ']') Value
 		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"Id":', CONVERT(gp.Id,CHAR), ',"PlatformId":', CONVERT(p.Id,CHAR)), '}' ORDER BY p.Id SEPARATOR ',') Value
+			SELECT GROUP_CONCAT('{', CONCAT('"ID":', CONVERT(gp.ID,CHAR), ',"PlatformID":', CONVERT(gp.PlatformID,CHAR)), '}' ORDER BY gp.PlatformID SEPARATOR ',') Value
 		    FROM tbl_Game_Platform gp
-		    JOIN tbl_Platform p ON p.Id = gp.PlatformId
-	        WHERE gp.GameId = g.Id
+	        WHERE gp.GameID = g.ID
 	        AND gp.Deleted = 0	        
         ) p1
     ) GamePlatforms ON TRUE
@@ -383,49 +401,56 @@ DROP VIEW IF EXISTS vw_Player;
 
 CREATE DEFINER=`root`@`localhost` VIEW vw_Player AS
 
-    SELECT p.Id,
+    SELECT p.ID,
            p.Name,    
     	   p.Code,
-           p.PlayerTypeId,
-		   pl.Id AS PlayerLinkId,               
+           p.PlayerTypeID,
+		   pl.ID AS PlayerLinkID,               
 		   pl.ProfileImageUrl,    
 		   pl.SrcUrl,
 		   pl.TwitchUrl,
 		   pl.HitboxUrl,
 		   pl.YoutubeUrl,
 		   pl.TwitterUrl,
-		   pl.SpeedRunsLiveUrl
+		   pl.SpeedRunsLiveUrl,
+		   ps.ID AS PlayerNameStyleID,
+		   ps.IsGradient,
+		   ps.ColorLight,
+		   ps.ColorDark,
+		   ps.ColorToLight,
+		   ps.ColorToDark
     FROM tbl_Player p
-    JOIN tbl_Player_Link pl ON pl.PlayerId = p.Id;    
+    JOIN tbl_Player_Link pl ON pl.PlayerID = p.ID
+    LEFT JOIN tbl_Player_NameStyle ps ON ps.PlayerID = p.ID;
   
 -- vw_SpeedRun
 DROP VIEW IF EXISTS vw_SpeedRun;
 
 CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRun AS
 
-    SELECT rn.Id,
+    SELECT rn.ID,
     	   rn.Code,
-           rn.GameId,
-           rn.CategoryId,
-           rn.LevelId,       
-           rn.PlatformId,
+           rn.GameID,
+           rn.CategoryTypeID,
+           rn.CategoryID,
+           rn.LevelID,    
+           rn.PlatformID,
            rn.Rank,
            rn.PrimaryTime,
            rn.DateSubmitted,
            rn.VerifyDate,
-           rl.Id AS SpeedRunLinkId,
+           rl.ID AS SpeedRunLinkID,
            rl.SrcUrl,
            Players.Value AS PlayersJson,
            VariableValues.Value AS VariableValuesJson,
            Videos.Value AS VideosJson
     FROM tbl_SpeedRun rn
-    JOIN tbl_SpeedRun_Link rl ON rl.SpeedRunId = rn.Id
+    JOIN tbl_SpeedRun_Link rl ON rl.SpeedRunID = rn.ID  
   	LEFT JOIN LATERAL (
 		SELECT CONCAT('[', p1.Value, ']') Value
 		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"Id":', CONVERT(rp.Id,CHAR), ',"PlayerId":', CONVERT(p.Id,CHAR)), '}' ORDER BY rp.Id SEPARATOR ',') Value
+			SELECT GROUP_CONCAT('{', CONCAT('"ID":', CONVERT(rp.ID,CHAR), ',"PlayerID":', CONVERT(rp.PlayerID,CHAR)), '}' ORDER BY rp.ID SEPARATOR ',') Value
 	        FROM tbl_SpeedRun_Player rp
-	        JOIN tbl_Player p ON p.Id = rp.PlayerId
 	        WHERE rp.SpeedRunID = rn.ID
 	        AND rp.Deleted = 0	        
         ) p1
@@ -433,10 +458,8 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRun AS
   	LEFT JOIN LATERAL (
 		SELECT CONCAT('[', v1.Value, ']') Value
 		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"Id":', CONVERT(rv.Id,CHAR), ',"VariableId":', CONVERT(v.Id,CHAR), ',"VariableCode":"', v.Code, '","VariableValueId":', va.Id, ',"VariableValueCode":"', va.Code), '"}' ORDER BY rv.Id SEPARATOR ',') Value
+			SELECT GROUP_CONCAT('{', CONCAT('"ID":', CONVERT(rv.ID,CHAR), ',"VariableID":', '","VariableValueID":', CONVERT(rv.VariableValueID,CHAR)), '}' ORDER BY rv.ID SEPARATOR ',') Value
 	        FROM tbl_SpeedRun_VariableValue rv
-	        JOIN tbl_Variable v ON v.Id = rv.VariableId
-	        JOIN tbl_VariableValue va ON va.Id = rv.VariableValueId
 	        WHERE rv.SpeedRunID = rn.ID
 	        AND rv.Deleted = 0	        
         ) v1
@@ -444,31 +467,94 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRun AS
   	LEFT JOIN LATERAL (
 		SELECT CONCAT('[', v1.Value, ']') Value
 		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"Id":', CONVERT(rv.Id,CHAR), ',"VideoLinkUrl":"', rv.VideoLinkUrl), '"}' ORDER BY rv.Id SEPARATOR ',') Value
+			SELECT GROUP_CONCAT('{', CONCAT('"ID":', CONVERT(rv.ID,CHAR), ',"VideoLinkUrl":"', rv.VideoLinkUrl), '"}' ORDER BY rv.ID SEPARATOR ',') Value
 	        FROM tbl_SpeedRun_Video rv
 	        WHERE rv.SpeedRunID = rn.ID
 	        AND rv.Deleted = 0	        
         ) v1
     ) Videos ON TRUE;    
    
--- vw_SpeedRunOrdered
-DROP VIEW IF EXISTS vw_SpeedRunOrdered;
+-- vw_SpeedRunGridTab
+DROP VIEW IF EXISTS vw_SpeedRunGridTab;
 
-CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunOrdered AS
+CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGridTab AS
 
-    SELECT dn.Id,
-    	   rn.Id AS SpeedRunId,
+    SELECT rn.ID,
     	   rn.Code,
-           rn.GameId,
-           rn.CategoryId,
-           rn.LevelId,       
-           rn.PlatformId,
+           rn.GameID,
+           rn.CategoryTypeID,
+           rn.CategoryID,
+           rn.LevelID,
+           SubCategoryVariableValueIDs.Value AS SubCategoryVariableValueIDs,
+           rn.`Rank`
+    FROM tbl_SpeedRun rn
+  	LEFT JOIN LATERAL (
+		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) ORDER BY rv.ID SEPARATOR ',') Value
+	    FROM tbl_SpeedRun_VariableValue rv
+	    JOIN tbl_Variable v ON v.ID = rv.VariableID AND v.IsSubCategory = 1
+	    WHERE rv.SpeedRunID = rn.ID
+	) SubCategoryVariableValueIDs ON TRUE;   
+   
+-- vw_SpeedRunGrid
+DROP VIEW IF EXISTS vw_SpeedRunGrid;
+
+CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGrid AS
+
+    SELECT rn.ID,
+    	   rn.Code,
+           rn.GameID,
+           rn.CategoryTypeID,
+           rn.CategoryID,
+           rn.LevelID,    
+           SubCategoryVariableValueIDs.Value AS SubCategoryVariableValueIDs,
+           p.ID AS PlatformID,
+           p.Name AS PlatformName,
            rn.Rank,
            rn.PrimaryTime,
            rn.DateSubmitted,
-           rn.VerifyDate
-    FROM tbl_SpeedRun_Ordered dn
-    JOIN tbl_SpeedRun rn ON rn.Id = dn.SpeedRunId;
+           rn.VerifyDate,
+           rl.SrcUrl,
+           Players.Value AS PlayersJson,
+           VariableValues.Value AS VariableValuesJson,
+           Videos.Value AS VideosJson
+    FROM tbl_SpeedRun rn
+    JOIN tbl_SpeedRun_Link rl ON rl.SpeedRunID = rn.ID
+    LEFT JOIN tbl_Platform p ON p.ID = rn.PlatformID
+  	LEFT JOIN LATERAL (
+		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) ORDER BY rv.ID SEPARATOR ',') Value
+	    FROM tbl_SpeedRun_VariableValue rv
+	    JOIN tbl_Variable v ON v.ID = rv.VariableID AND v.IsSubCategory = 1
+	    WHERE rv.SpeedRunID = rn.ID
+	) SubCategoryVariableValueIDs ON TRUE    
+  	LEFT JOIN LATERAL (
+		SELECT CONCAT('[', p1.Value, ']') Value
+		FROM (
+			SELECT GROUP_CONCAT('{', CONCAT('"ID":', CONVERT(p.ID,CHAR), ',"Name":"', REPLACE(REPLACE(p.Name,"\\","\\\\"),"\"","\\\""), '","ColorLight":"', COALESCE(ps.ColorLight,''), '","ColorToLight":"', COALESCE(ps.ColorToLight,''), '","ColorDark":"', COALESCE(ps.ColorDark,''), '","ColorToDark":"', COALESCE(ps.ColorToDark,'')), '"}' ORDER BY rp.ID SEPARATOR ',') Value
+	        FROM tbl_SpeedRun_Player rp
+	        JOIN tbl_Player p ON p.ID = rp.PlayerID
+	        LEFT JOIN tbl_Player_NameStyle ps ON ps.PlayerID = p.ID 
+	        WHERE rp.SpeedRunID = rn.ID
+	        AND rp.Deleted = 0	        
+        ) p1
+    ) Players ON TRUE    
+  	LEFT JOIN LATERAL (
+		SELECT CONCAT('[', v1.Value, ']') Value
+		FROM (
+			SELECT GROUP_CONCAT('{', CONCAT(CONVERT(rv.VariableID,CHAR), ',', CONVERT(rv.VariableValueID,CHAR)), '}' ORDER BY rv.ID SEPARATOR ',') Value
+	        FROM tbl_SpeedRun_VariableValue rv
+	        WHERE rv.SpeedRunID = rn.ID
+	        AND rv.Deleted = 0	        
+        ) v1
+    ) VariableValues ON TRUE
+  	LEFT JOIN LATERAL (
+		SELECT CONCAT('[', v1.Value, ']') Value
+		FROM (
+			SELECT GROUP_CONCAT('{', rv.VideoLinkUrl, '"}' ORDER BY rv.ID SEPARATOR ',') Value
+	        FROM tbl_SpeedRun_Video rv
+	        WHERE rv.SpeedRunID = rn.ID
+	        AND rv.Deleted = 0	        
+        ) v1
+    ) Videos ON TRUE;
    
 /*********************************************/
 -- create/alter procs
@@ -492,18 +578,18 @@ BEGIN
    	DROP TEMPORARY TABLE IF EXISTS LeaderboardKeysFromRuns;
 	CREATE TEMPORARY TABLE LeaderboardKeysFromRuns
 	(
-		GameId INT,
-		CategoryId INT,
-		LevelId INT,
+		GameID INT,
+		CategoryID INT,
+		LevelID INT,
 		IsTimerAscending BIT		
 	);
 
    	DROP TEMPORARY TABLE IF EXISTS LeaderboardKeys;
 	CREATE TEMPORARY TABLE LeaderboardKeys
 	(
-		GameId INT,
-		CategoryId INT,
-		LevelId INT,
+		GameID INT,
+		CategoryID INT,
+		LevelID INT,
 		IsTimerAscending BIT		
 	);
 
@@ -511,25 +597,25 @@ BEGIN
 	CREATE TEMPORARY TABLE SpeedRunsToUpdate
 	(
 	      RowNum INT AUTO_INCREMENT,	
-          Id INT,
-          GameId INT,
-          CategoryId INT,
-          LevelId INT,
+          ID INT,
+          GameID INT,
+          CategoryID INT,
+          LevelID INT,
           SubCategoryVariableValues VARCHAR(150),
-          PlayerIds VARCHAR(150),
+          PlayerIDs VARCHAR(150),
           PrimaryTime BIGINT,
           IsTimerAscending BIT,          
           RankPriority INT,
 		  PRIMARY KEY (RowNum)          
 	);
-	CREATE INDEX IdX_SpeedRunsToUpdate_GameId_CategoryId_LevelId_PlusInclude ON SpeedRunsToUpdate (GameId, CategoryId, LevelId, SubCategoryVariableValues, PlayerIds, PrimaryTime);
-	CREATE INDEX IdX_SpeedRunsToUpdate_RankPriority_PlayerIds ON SpeedRunsToUpdate (RankPriority, PlayerIds);
+	CREATE INDEX IDX_SpeedRunsToUpdate_GameID_CategoryID_LevelID_PlusInclude ON SpeedRunsToUpdate (GameID, CategoryID, LevelID, SubCategoryVariableValues, PlayerIDs, PrimaryTime);
+	CREATE INDEX IDX_SpeedRunsToUpdate_RankPriority_PlayerIDs ON SpeedRunsToUpdate (RankPriority, PlayerIDs);
 
    	DROP TEMPORARY TABLE IF EXISTS SpeedRunsRanked;
 	CREATE TEMPORARY TABLE SpeedRunsRanked
 	(
 		RowNum INT AUTO_INCREMENT,
-		Id INT,
+		ID INT,
 		`Rank` INT,
 		PRIMARY KEY (RowNum)		
 	);
@@ -543,50 +629,50 @@ BEGIN
 	);
 
 	IF LastImportDate IS NOT NULL THEN
-		INSERT INTO LeaderboardKeysFromRuns (GameId, CategoryId, LevelId)
-		SELECT rn.GameId, rn.CategoryId, rn.LevelId
+		INSERT INTO LeaderboardKeysFromRuns (GameID, CategoryID, LevelID)
+		SELECT rn.GameID, rn.CategoryID, rn.LevelID
 		FROM tbl_SpeedRun rn
 		WHERE COALESCE(rn.ModifiedDate, rn.CreatedDate) > LastImportDate
-		GROUP BY rn.GameId, rn.CategoryId, rn.LevelId;
+		GROUP BY rn.GameID, rn.CategoryID, rn.LevelID;
     END IF;	
 
-  	INSERT INTO LeaderboardKeys (GameId, CategoryId, LevelId, IsTimerAscending)
-	SELECT g.Id, c.Id, l.Id, COALESCE(c.IsTimerAscending, 0)
+  	INSERT INTO LeaderboardKeys (GameID, CategoryID, LevelID, IsTimerAscending)
+	SELECT g.ID, c.ID, l.ID, COALESCE(c.IsTimerAscending, 0)
 	FROM tbl_Game g
-	JOIN tbl_Category c ON c.GameId = g.Id
-	LEFT JOIN tbl_Level l ON l.GameId = g.Id	
- 	WHERE NOT EXISTS (SELECT 1 FROM LeaderboardKeysFromRuns WHERE GameId = g.Id AND CategoryId = c.Id AND COALESCE(LevelId, 0) = COALESCE(l.Id, 0))
+	JOIN tbl_Category c ON c.GameID = g.ID
+	LEFT JOIN tbl_Level l ON l.GameID = g.ID	
+ 	WHERE NOT EXISTS (SELECT 1 FROM LeaderboardKeysFromRuns WHERE GameID = g.ID AND CategoryID = c.ID AND COALESCE(LevelID, 0) = COALESCE(l.ID, 0))
  	AND (LastImportDate IS NULL OR COALESCE(g.ModifiedDate, g.CreatedDate) > LastImportDate)
-	GROUP BY g.Id, c.Id, l.Id, c.IsTimerAscending;
+	GROUP BY g.ID, c.ID, l.ID, c.IsTimerAscending;
 
 	INSERT INTO LeaderboardKeys (GameID, CategoryID, LevelID, IsTimerAscending)
 	SELECT rn.GameID, rn.CategoryID, rn.LevelID, COALESCE(c.IsTimerAscending, 0)
 	FROM LeaderboardKeysFromRuns rn
 	JOIN tbl_Category c ON c.ID = rn.CategoryID;
 
-	INSERT INTO SpeedRunsToUpdate(Id, GameId, CategoryId, LevelId, SubCategoryVariableValues, PlayerIds, PrimaryTime, IsTimerAscending)
-    SELECT rn.Id, rn.GameId, rn.CategoryId, rn.LevelId, SubCategoryVariableValues.Value, PlayerIds.Value, rn.PrimaryTime, lb.IsTimerAscending
+	INSERT INTO SpeedRunsToUpdate(ID, GameID, CategoryID, LevelID, SubCategoryVariableValues, PlayerIDs, PrimaryTime, IsTimerAscending)
+    SELECT rn.ID, rn.GameID, rn.CategoryID, rn.LevelID, SubCategoryVariableValues.Value, PlayerIDs.Value, rn.PrimaryTime, lb.IsTimerAscending
     FROM tbl_SpeedRun rn
-    JOIN LeaderboardKeys lb ON lb.GameId = rn.GameId AND lb.CategoryId = rn.CategoryId AND COALESCE(lb.LevelId, 0) = COALESCE(rn.LevelId, 0)
+    JOIN LeaderboardKeys lb ON lb.GameID = rn.GameID AND lb.CategoryID = rn.CategoryID AND COALESCE(lb.LevelID, 0) = COALESCE(rn.LevelID, 0)
   	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueId,CHAR) ORDER BY rv.Id SEPARATOR ',') Value
+		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) ORDER BY rv.ID SEPARATOR ',') Value
 	    FROM tbl_SpeedRun_VariableValue rv
-	    JOIN tbl_Variable v ON v.Id = rv.VariableId AND v.IsSubCategory = 1
-	    WHERE rv.SpeedRunId = rn.Id
+	    JOIN tbl_Variable v ON v.ID = rv.VariableID AND v.IsSubCategory = 1
+	    WHERE rv.SpeedRunID = rn.ID
 	) SubCategoryVariableValues ON TRUE
  	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONVERT(rp.PlayerId,CHAR) ORDER BY rp.Id SEPARATOR ',') Value
+		SELECT GROUP_CONCAT(CONVERT(rp.PlayerID,CHAR) ORDER BY rp.ID SEPARATOR ',') Value
 	    FROM tbl_SpeedRun_Player rp
-		WHERE rp.SpeedRunId = rn.Id
-	) PlayerIds ON TRUE;
+		WHERE rp.SpeedRunID = rn.ID
+	) PlayerIDs ON TRUE;
   
 	INSERT INTO SpeedRunsToUpdateRankPriority (RowNum, RankPriority)
-	SELECT rn.RowNum, ROW_NUMBER() OVER (PARTITION BY rn.GameId, rn.CategoryId, rn.LevelId, rn.SubCategoryVariableValues, rn.PlayerIds ORDER BY rn.PrimaryTime DESC)
+	SELECT rn.RowNum, ROW_NUMBER() OVER (PARTITION BY rn.GameID, rn.CategoryID, rn.LevelID, rn.SubCategoryVariableValues, rn.PlayerIDs ORDER BY rn.PrimaryTime DESC)
 	FROM SpeedRunsToUpdate rn
 	WHERE rn.IsTimerAscending = 1;
 
 	INSERT INTO SpeedRunsToUpdateRankPriority (RowNum, RankPriority)
-	SELECT rn.RowNum, ROW_NUMBER() OVER (PARTITION BY rn.GameId, rn.CategoryId, rn.LevelId, rn.SubCategoryVariableValues, rn.PlayerIds ORDER BY rn.PrimaryTime)
+	SELECT rn.RowNum, ROW_NUMBER() OVER (PARTITION BY rn.GameID, rn.CategoryID, rn.LevelID, rn.SubCategoryVariableValues, rn.PlayerIDs ORDER BY rn.PrimaryTime)
 	FROM SpeedRunsToUpdate rn
 	WHERE rn.IsTimerAscending = 0;
 
@@ -594,14 +680,14 @@ BEGIN
 	JOIN SpeedRunsToUpdateRankPriority rn1 ON rn1.RowNum = rn.RowNum
 	SET rn.RankPriority = rn1.RankPriority;
 
-	INSERT INTO SpeedRunsRanked(Id, `Rank`)
-	SELECT Id, RANK() OVER (PARTITION BY rn.GameId, rn.CategoryId, rn.LevelId, rn.SubCategoryVariableValues ORDER BY rn.PrimaryTime DESC)  
+	INSERT INTO SpeedRunsRanked(ID, `Rank`)
+	SELECT ID, RANK() OVER (PARTITION BY rn.GameID, rn.CategoryID, rn.LevelID, rn.SubCategoryVariableValues ORDER BY rn.PrimaryTime DESC)  
 	FROM SpeedRunsToUpdate rn
 	WHERE rn.RankPriority = 1
 	AND rn.IsTimerAscending = 1;
 
-	INSERT INTO SpeedRunsRanked(Id, `Rank`)
-	SELECT Id, RANK() OVER (PARTITION BY rn.GameId, rn.CategoryId, rn.LevelId, rn.SubCategoryVariableValues ORDER BY rn.PrimaryTime)  
+	INSERT INTO SpeedRunsRanked(ID, `Rank`)
+	SELECT ID, RANK() OVER (PARTITION BY rn.GameID, rn.CategoryID, rn.LevelID, rn.SubCategoryVariableValues ORDER BY rn.PrimaryTime)  
 	FROM SpeedRunsToUpdate rn
 	WHERE rn.RankPriority = 1
 	AND rn.IsTimerAscending = 0;
@@ -612,19 +698,19 @@ BEGIN
 		   	DROP TEMPORARY TABLE IF EXISTS SpeedRunsToUpdateBatch;
 			CREATE TEMPORARY TABLE SpeedRunsToUpdateBatch
 			(
-				Id INT,
-				PRIMARY KEY (Id)		
+				ID INT,
+				PRIMARY KEY (ID)		
 			);
 
-            INSERT INTO SpeedRunsToUpdateBatch (Id)
-		    SELECT Id
+            INSERT INTO SpeedRunsToUpdateBatch (ID)
+		    SELECT ID
 		    FROM SpeedRunsToUpdate
 		    WHERE RowNum > RowCount
 		    ORDER BY RowNum
 		    LIMIT BatchCount; 
 		   
 			UPDATE tbl_SpeedRun rn
-		  	JOIN SpeedRunsToUpdateBatch rn1 ON rn1.Id = rn.Id
+		  	JOIN SpeedRunsToUpdateBatch rn1 ON rn1.ID = rn.ID
 		  	SET rn.`Rank` = NULL;	
 		  
 			SET RowCount = RowCount + BatchCount;
@@ -636,35 +722,35 @@ BEGIN
 		   	DROP TEMPORARY TABLE IF EXISTS SpeedRunsRankedBatch;
 			CREATE TEMPORARY TABLE SpeedRunsRankedBatch
 			(
-				Id INT,
+				ID INT,
 				`Rank` INT,				
-				PRIMARY KEY (Id)		
+				PRIMARY KEY (ID)		
 			);
 		
-            INSERT INTO SpeedRunsRankedBatch (Id, `Rank`)
-		    SELECT Id, `Rank`
+            INSERT INTO SpeedRunsRankedBatch (ID, `Rank`)
+		    SELECT ID, `Rank`
 		    FROM SpeedRunsRanked
 		    WHERE RowNum > RowCount
 		    ORDER BY RowNum
 		    LIMIT BatchCount;         
         
 			UPDATE tbl_SpeedRun rn
-		  	JOIN SpeedRunsRankedBatch rn1 ON rn1.Id = rn.Id
+		  	JOIN SpeedRunsRankedBatch rn1 ON rn1.ID = rn.ID
 		  	SET rn.`Rank` = rn1.`Rank`;
 		  
   			SET RowCount = RowCount + BatchCount;		
 	    END WHILE;		
     ELSE
-		SELECT rn.RankPriority, rn.Id, rn.GameId, rn.CategoryId, rn.LevelId, rn.SubCategoryVariableValues, rn.PlayerIds, rn.GuestIds, rn.PrimaryTime
+		SELECT rn.RankPriority, rn.ID, rn.GameID, rn.CategoryID, rn.LevelID, rn.SubCategoryVariableValues, rn.PlayerIDs, rn.GuestIDs, rn.PrimaryTime
         FROM SpeedRunsToUpdate rn
         WHERE rn.SubCategoryVariableValues IS NOT NULL
-        ORDER BY rn.GameId, rn.CategoryId, rn.LevelId, rn.SubCategoryVariableValues, rn.PlayerIds, rn.GuestIds, rn.RankPriority;
+        ORDER BY rn.GameID, rn.CategoryID, rn.LevelID, rn.SubCategoryVariableValues, rn.PlayerIDs, rn.GuestIDs, rn.RankPriority;
         
-        SELECT rn1.`Rank`, rn.Id, rn.GameId, rn.CategoryId, rn.LevelId, rn.SubCategoryVariableValues, rn.PlayerIds, rn.GuestIds, rn.PrimaryTime
+        SELECT rn1.`Rank`, rn.ID, rn.GameID, rn.CategoryID, rn.LevelID, rn.SubCategoryVariableValues, rn.PlayerIDs, rn.GuestIDs, rn.PrimaryTime
         FROM SpeedRunsToUpdate rn
-        JOIN SpeedRunsRanked rn1 ON rn1.Id = rn.Id
+        JOIN SpeedRunsRanked rn1 ON rn1.ID = rn.ID
         WHERE rn.SubCategoryVariableValues IS NOT NULL
-        ORDER BY rn.GameId, rn.CategoryId, rn.LevelId, rn.SubCategoryVariableValues, rn1.`Rank`;     
+        ORDER BY rn.GameID, rn.CategoryID, rn.LevelID, rn.SubCategoryVariableValues, rn1.`Rank`;     
     END IF;
 END $$
 DELIMITER ;
@@ -684,16 +770,16 @@ BEGIN
 	SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 
 	UPDATE tbl_SpeedRun_Ordered dn
-	JOIN tbl_SpeedRun rn ON rn.Id = dn.SpeedRunId
+	JOIN tbl_SpeedRun rn ON rn.ID = dn.SpeedRunID
 	SET dn.Deleted = 1
 	WHERE COALESCE(rn.VerifyDate, '1753-01-01 00:00:00') < StartDate;
 
-	INSERT INTO tbl_SpeedRun_Ordered (SpeedRunId, Deleted)
-	SELECT rn.Id, 0
+	INSERT INTO tbl_SpeedRun_Ordered (SpeedRunID, Deleted)
+	SELECT rn.ID, 0
 	FROM tbl_SpeedRun rn
 	WHERE rn.VerifyDate >= StartDate
 	AND (LastImportDate IS NULL OR rn.CreatedDate > LastImportDate)
-	AND NOT EXISTS (SELECT 1 FROM tbl_SpeedRun_Ordered rn2 WHERE rn2.SpeedRunId = rn.Id)
+	AND NOT EXISTS (SELECT 1 FROM tbl_SpeedRun_Ordered rn2 WHERE rn2.SpeedRunID = rn.ID)
 	ORDER BY rn.VerifyDate;
 	
 END $$
@@ -707,12 +793,12 @@ SELECT 'LastImportDate', NULL, NULL, NULL
 UNION ALL
 SELECT 'GameLastImportRefDate', NULL, NULL, NULL;
 
-INSERT INTO tbl_CategoryType (Id, Name)
+INSERT INTO tbl_CategoryType (ID, Name)
 SELECT '0', 'PerGame'
 UNION ALL
 SELECT '1', 'PerLevel';
 
-INSERT INTO tbl_VariableScopeType (Id, Name)
+INSERT INTO tbl_VariableScopeType (ID, Name)
 SELECT '0', 'Global'
 UNION ALL
 SELECT '1', 'FullGame'
@@ -721,7 +807,7 @@ SELECT '2', 'AllLevels'
 UNION ALL
 SELECT '3', 'SingleLevel';
 
-INSERT INTO tbl_PlayerType (Id, Name)
+INSERT INTO tbl_PlayerType (ID, Name)
 SELECT '0', 'User'
 UNION ALL
 SELECT '1', 'Guest';
@@ -937,99 +1023,99 @@ JOIN speedrunapp.tbl_platform_speedruncomid dn ON dn.PlatformID = p.ID
 GROUP BY p.Name, dn.SpeedRunComID
 
 INSERT INTO tbl_Game (Name, Code, Abbr, ShowMilliseconds, ReleaseDate, ImportRefDate, CreatedDate, ModifiedDate)
-SELECT g.Name, gc.SpeedRunComId, g.Abbr, gr.ShowMilliseconds, MAKEDATE(g.YearOfRelease, 1), g.CreatedDate, g.ImportedDate, NULL
+SELECT g.Name, gc.SpeedRunComID, g.Abbr, gr.ShowMilliseconds, MAKEDATE(g.YearOfRelease, 1), g.CreatedDate, g.ImportedDate, NULL
 FROM SpeedRunApp.tbl_Game g
-JOIN SpeedRunApp.tbl_Game_SpeedRunComId gc ON gc.GameId = g.Id
-JOIN SpeedRunApp.tbl_Game_Ruleset gr ON gr.GameId = g.Id
-ORDER BY g.Id
+JOIN SpeedRunApp.tbl_Game_SpeedRunComID gc ON gc.GameID = g.ID
+JOIN SpeedRunApp.tbl_Game_Ruleset gr ON gr.GameID = g.ID
+ORDER BY g.ID
 LIMIT 100;
 
-INSERT INTO tbl_Game_Link (GameId, CoverImageUrl, SrcUrl)
-SELECT g1.Id, gl.CoverImageUrl, gl.SrcUrl
+INSERT INTO tbl_Game_Link (GameID, CoverImageUrl, SrcUrl)
+SELECT g1.ID, gl.CoverImageUrl, gl.SrcUrl
 FROM SpeedRunApp.tbl_Game_Link gl
-JOIN SpeedRunApp.tbl_Game_SpeedRunComId gc ON gc.GameId = gl.GameId
-JOIN tbl_Game g1 ON g1.Code = gc.SpeedRunComId
-ORDER BY g1.Id
+JOIN SpeedRunApp.tbl_Game_SpeedRunComID gc ON gc.GameID = gl.GameID
+JOIN tbl_Game g1 ON g1.Code = gc.SpeedRunComID
+ORDER BY g1.ID
 LIMIT 100;
 
-INSERT INTO tbl_CategoryType (Id, Name)
-SELECT ct.Id, ct.Name
+INSERT INTO tbl_CategoryType (ID, Name)
+SELECT ct.ID, ct.Name
 FROM SpeedRunApp.tbl_CategoryType ct
-GROUP BY ct.Id, ct.Name
-ORDER BY ct.Id;
+GROUP BY ct.ID, ct.Name
+ORDER BY ct.ID;
 
-INSERT INTO tbl_Game_CategoryType (GameId, CategoryTypeId)
-SELECT g1.Id, ct.Id
+INSERT INTO tbl_Game_CategoryType (GameID, CategoryTypeID)
+SELECT g1.ID, ct.ID
 FROM SpeedRunApp.tbl_CategoryType ct
-JOIN SpeedRunApp.tbl_Category c ON c.CategoryTypeId = ct.Id
-JOIN SpeedRunApp.tbl_Game g ON g.Id = c.GameId
-JOIN SpeedRunApp.tbl_Game_SpeedRunComId gc ON gc.GameId = g.Id
-JOIN tbl_Game g1 ON g1.Code = gc.SpeedRunComId
-GROUP BY g1.Id, ct.Id
-ORDER BY g1.Id, ct.Id;
+JOIN SpeedRunApp.tbl_Category c ON c.CategoryTypeID = ct.ID
+JOIN SpeedRunApp.tbl_Game g ON g.ID = c.GameID
+JOIN SpeedRunApp.tbl_Game_SpeedRunComID gc ON gc.GameID = g.ID
+JOIN tbl_Game g1 ON g1.Code = gc.SpeedRunComID
+GROUP BY g1.ID, ct.ID
+ORDER BY g1.ID, ct.ID;
 
-INSERT INTO tbl_Category (Name, Code, GameId, CategoryTypeId, IsMiscellaneous, IsTimerAscending)
-SELECT c.Name, cc.SpeedRunComId, g1.Id, c.CategoryTypeId, c.IsMiscellaneous, c.IsTimerAscending
+INSERT INTO tbl_Category (Name, Code, GameID, CategoryTypeID, IsMiscellaneous, IsTimerAscending)
+SELECT c.Name, cc.SpeedRunComID, g1.ID, c.CategoryTypeID, c.IsMiscellaneous, c.IsTimerAscending
 FROM SpeedRunApp.tbl_Category c
-JOIN SpeedRunApp.tbl_Category_SpeedRunComId cc ON cc.CategoryId = c.Id
-JOIN SpeedRunApp.tbl_Game_SpeedRunComId gc ON gc.GameId = c.GameId
-JOIN tbl_Game g1 ON g1.Code = gc.SpeedRunComId
-GROUP BY c.Id, c.Name, cc.SpeedRunComId, g1.Id, c.CategoryTypeId, c.IsMiscellaneous, c.IsTimerAscending
-ORDER BY c.Id;
+JOIN SpeedRunApp.tbl_Category_SpeedRunComID cc ON cc.CategoryID = c.ID
+JOIN SpeedRunApp.tbl_Game_SpeedRunComID gc ON gc.GameID = c.GameID
+JOIN tbl_Game g1 ON g1.Code = gc.SpeedRunComID
+GROUP BY c.ID, c.Name, cc.SpeedRunComID, g1.ID, c.CategoryTypeID, c.IsMiscellaneous, c.IsTimerAscending
+ORDER BY c.ID;
 
-INSERT INTO tbl_Level (Name, Code, GameId)
-SELECT l.Name, lc.SpeedRunComId, g1.Id
+INSERT INTO tbl_Level (Name, Code, GameID)
+SELECT l.Name, lc.SpeedRunComID, g1.ID
 FROM SpeedRunApp.tbl_Level l
-JOIN SpeedRunApp.tbl_Level_SpeedRunComId lc ON lc.LevelId = l.Id
-JOIN SpeedRunApp.tbl_Game_SpeedRunComId gc ON gc.GameId = l.GameId
-JOIN tbl_Level l1 ON l1.Code = lc.SpeedRunComId
-JOIN tbl_Game g1 ON g1.Code = gc.SpeedRunComId
-GROUP BY l1.Id, l.Name, lc.SpeedRunComId, g1.Id
-ORDER BY l1.Id;
+JOIN SpeedRunApp.tbl_Level_SpeedRunComID lc ON lc.LevelID = l.ID
+JOIN SpeedRunApp.tbl_Game_SpeedRunComID gc ON gc.GameID = l.GameID
+JOIN tbl_Level l1 ON l1.Code = lc.SpeedRunComID
+JOIN tbl_Game g1 ON g1.Code = gc.SpeedRunComID
+GROUP BY l1.ID, l.Name, lc.SpeedRunComID, g1.ID
+ORDER BY l1.ID;
 
-INSERT INTO tbl_VariableScopeType (Id, Name)
-SELECT vt.Id, vt.Name
+INSERT INTO tbl_VariableScopeType (ID, Name)
+SELECT vt.ID, vt.Name
 FROM SpeedRunApp.tbl_VariableScopeType vt
-ORDER BY vt.Id;
+ORDER BY vt.ID;
 
-INSERT INTO tbl_Variable (Name, Code, GameId, VariableScopeTypeId, CategoryId, LevelId, IsSubCategory)
-SELECT v.Name, gc.SpeedRunComId, g1.Id, v.VariableScopeTypeId, c1.Id, l1.Id, v.IsSubCategory
+INSERT INTO tbl_Variable (Name, Code, GameID, VariableScopeTypeID, CategoryID, LevelID, IsSubCategory)
+SELECT v.Name, gc.SpeedRunComID, g1.ID, v.VariableScopeTypeID, c1.ID, l1.ID, v.IsSubCategory
 FROM SpeedRunApp.tbl_Variable v
-JOIN SpeedRunApp.tbl_Variable_SpeedRunComId vc ON vc.VariableId = v.Id
-JOIN SpeedRunApp.tbl_Game_SpeedRunComId gc ON gc.GameId = v.GameId
-JOIN SpeedRunApp.tbl_Category_SpeedRunComId cc ON cc.CategoryId = v.CategoryId
-JOIN SpeedRunApp.tbl_Level_SpeedRunComId lc ON lc.LevelId = v.LevelId
-JOIN tbl_Variable v1 ON v1.Code = vc.SpeedRunComId
-JOIN tbl_Game g1 ON g1.Code = gc.SpeedRunComId
-JOIN tbl_Category c1 ON c1.Code = cc.SpeedRunComId
-JOIN tbl_Level l1 ON l1.Code = lc.SpeedRunComId
-GROUP BY v.Id, v.Name, gc.SpeedRunComId, g1.Id, v.VariableScopeTypeId, c1.Id, l1.Id, v.IsSubCategory
-ORDER BY v.Id;
+JOIN SpeedRunApp.tbl_Variable_SpeedRunComID vc ON vc.VariableID = v.ID
+JOIN SpeedRunApp.tbl_Game_SpeedRunComID gc ON gc.GameID = v.GameID
+JOIN SpeedRunApp.tbl_Category_SpeedRunComID cc ON cc.CategoryID = v.CategoryID
+JOIN SpeedRunApp.tbl_Level_SpeedRunComID lc ON lc.LevelID = v.LevelID
+JOIN tbl_Variable v1 ON v1.Code = vc.SpeedRunComID
+JOIN tbl_Game g1 ON g1.Code = gc.SpeedRunComID
+JOIN tbl_Category c1 ON c1.Code = cc.SpeedRunComID
+JOIN tbl_Level l1 ON l1.Code = lc.SpeedRunComID
+GROUP BY v.ID, v.Name, gc.SpeedRunComID, g1.ID, v.VariableScopeTypeID, c1.ID, l1.ID, v.IsSubCategory
+ORDER BY v.ID;
 
-INSERT INTO tbl_VariableValue (Name, Code, GameId, VariableId, IsMiscellaneous)
-SELECT v.Value, gc.SpeedRunComId, g1.Id, v2.Id, v.IsCustomValue
+INSERT INTO tbl_VariableValue (Name, Code, GameID, VariableID, IsMiscellaneous)
+SELECT v.Value, gc.SpeedRunComID, g1.ID, v2.ID, v.IsCustomValue
 FROM SpeedRunApp.tbl_VariableValue v
-JOIN SpeedRunApp.tbl_VariableValue_SpeedRunComId vc ON vc.VariableValueId = v.Id
-JOIN SpeedRunApp.tbl_Variable_SpeedRunComId vc2 ON vc2.VariableId = v.VariableId
-JOIN SpeedRunApp.tbl_Game_SpeedRunComId gc ON gc.GameId = v.GameId
-JOIN tbl_VariableValue v1 ON v1.Code = vc.SpeedRunComId
-JOIN tbl_Variable v2 ON v2.Code = vc2.SpeedRunComId
-JOIN tbl_Game g1 ON g1.Code = gc.SpeedRunComId
-GROUP BY v.Id, v.Value, gc.SpeedRunComId, g1.Id, v2.Id, v.IsCustomValue
-ORDER BY v.Id;
+JOIN SpeedRunApp.tbl_VariableValue_SpeedRunComID vc ON vc.VariableValueID = v.ID
+JOIN SpeedRunApp.tbl_Variable_SpeedRunComID vc2 ON vc2.VariableID = v.VariableID
+JOIN SpeedRunApp.tbl_Game_SpeedRunComID gc ON gc.GameID = v.GameID
+JOIN tbl_VariableValue v1 ON v1.Code = vc.SpeedRunComID
+JOIN tbl_Variable v2 ON v2.Code = vc2.SpeedRunComID
+JOIN tbl_Game g1 ON g1.Code = gc.SpeedRunComID
+GROUP BY v.ID, v.Value, gc.SpeedRunComID, g1.ID, v2.ID, v.IsCustomValue
+ORDER BY v.ID;
 
 INSERT INTO tbl_Platform (Name, Code, YearOfRelease, CreatedDate)
-SELECT DISTINCT p.Name, pc.SpeedRunComId, p.YearOfRelease, p.ImportedDate
+SELECT DISTINCT p.Name, pc.SpeedRunComID, p.YearOfRelease, p.ImportedDate
 FROM SpeedRunApp.tbl_Platform p
-JOIN SpeedRunApp.tbl_Platform_SpeedRunComId pc ON pc.PlatformId = p.Id;
+JOIN SpeedRunApp.tbl_Platform_SpeedRunComID pc ON pc.PlatformID = p.ID;
 
-INSERT INTO tbl_Game_Platform(GameId, PlatformId)
-SELECT DISTINCT g1.Id, p1.Id
+INSERT INTO tbl_Game_Platform(GameID, PlatformID)
+SELECT DISTINCT g1.ID, p1.ID
 FROM SpeedRunApp.tbl_Game_Platform gp
-JOIN SpeedRunApp.tbl_Platform_SpeedRunComId pc ON pc.PlatformId = gp.PlatformId
-JOIN SpeedRunApp.tbl_Game_SpeedRunComId gc ON gc.GameId = gp.GameId
-JOIN tbl_Platform p1 ON p1.Code = pc.SpeedRunComId
-JOIN tbl_Game g1 ON g1.Code = gc.SpeedRunComId;
+JOIN SpeedRunApp.tbl_Platform_SpeedRunComID pc ON pc.PlatformID = gp.PlatformID
+JOIN SpeedRunApp.tbl_Game_SpeedRunComID gc ON gc.GameID = gp.GameID
+JOIN tbl_Platform p1 ON p1.Code = pc.SpeedRunComID
+JOIN tbl_Game g1 ON g1.Code = gc.SpeedRunComID;
 */
 
 
