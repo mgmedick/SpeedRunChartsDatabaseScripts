@@ -32,20 +32,20 @@ CREATE TABLE tbl_User_Setting(
 	PRIMARY KEY (ID)	
 );
 
--- tbl_User_SpeedRunListCategory
-DROP TABLE IF EXISTS tbl_User_SpeedRunListCategory;
+-- tbl_User_SummaryList
+DROP TABLE IF EXISTS tbl_User_SummaryList;
 
-CREATE TABLE tbl_User_SpeedRunListCategory(
+CREATE TABLE tbl_User_SummaryList(
 	ID int NOT NULL AUTO_INCREMENT,
 	UserID int NOT NULL,
-	SpeedRunListCategoryID int NOT NULL,
+	SummaryListID int NOT NULL,
 	PRIMARY KEY (ID)		
 );
 
--- tbl_SpeedRunListCategory
-DROP TABLE IF EXISTS tbl_SpeedRunListCategory;
+-- tbl_SummaryList
+DROP TABLE IF EXISTS tbl_SummaryList;
 
-CREATE TABLE tbl_SpeedRunListCategory(
+CREATE TABLE tbl_SummaryList(
 	ID int NOT NULL,
 	Name varchar(50) NOT NULL,
 	DisplayName varchar(50) NULL,
@@ -63,7 +63,7 @@ CREATE TABLE tbl_Game
     ID int NOT NULL AUTO_INCREMENT, 
     Name varchar (250) NOT NULL,
     Code varchar(10) NOT NULL,
-	Abbr varchar(100) NULL,
+	Abbr varchar(100) NOT NULL,
     ShowMilliseconds bit NOT NULL,
     ReleaseDate datetime NULL,
     Deleted bit NOT NULL,
@@ -231,6 +231,7 @@ CREATE TABLE tbl_Player
     ID int NOT NULL AUTO_INCREMENT, 
     Name varchar (100) NOT NULL,    
     Code varchar(100) NOT NULL, 
+	Abbr varchar(100) NOT NULL,    
 	PlayerTypeID int NOT NULL,
     ImportedDate datetime NOT NULL DEFAULT (UTC_TIMESTAMP),
 	ModifiedDate datetime NULL,
@@ -354,10 +355,10 @@ CREATE TABLE tbl_SpeedRun_Video
 );
 CREATE INDEX IDX_tbl_SpeedRun_Video_SpeedRunID ON tbl_SpeedRun_Video (SpeedRunID);
 
--- tbl_SpeedRun_Ordered
-DROP TABLE IF EXISTS tbl_SpeedRun_Ordered;
+-- tbl_SpeedRun_Summary
+DROP TABLE IF EXISTS tbl_SpeedRun_Summary;
 
-CREATE TABLE tbl_SpeedRun_Ordered 
+CREATE TABLE tbl_SpeedRun_Summary 
 ( 
     ID int NOT NULL AUTO_INCREMENT,
     SpeedRunID int NOT NULL,
@@ -455,6 +456,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_Player AS
     SELECT p.ID,
            p.Name,    
     	   p.Code,
+    	   p.Abbr,
            p.PlayerTypeID,
 		   pl.ID AS PlayerLinkID,               
 		   pl.ProfileImageUrl,    
@@ -524,30 +526,8 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRun AS
 	        WHERE rv.SpeedRunID = rn.ID
 	        AND rv.Deleted = 0	        
         ) v1
-    ) Videos ON TRUE;    
-   
-/*  
--- vw_SpeedRunGridTab
-DROP VIEW IF EXISTS vw_SpeedRunGridTab;
-
-CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGridTab AS
-
-    SELECT rn.ID,
-    	   rn.Code,
-           rn.GameID,
-           rn.CategoryTypeID,
-           rn.CategoryID,
-           rn.LevelID,
-           SubCategoryVariableValueIDs.Value AS SubCategoryVariableValueIDs,
-           rn.`Rank`
-    FROM tbl_SpeedRun rn
-  	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) ORDER BY rv.ID SEPARATOR ',') Value
-	    FROM tbl_SpeedRun_VariableValue rv
-	    JOIN tbl_Variable v ON v.ID = rv.VariableID AND v.IsSubCategory = 1
-	    WHERE rv.SpeedRunID = rn.ID
-	) SubCategoryVariableValueIDs ON TRUE;   
-*/
+    ) Videos ON TRUE
+    WHERE rn.Deleted = 0;
    
 -- vw_SpeedRunGrid
 DROP VIEW IF EXISTS vw_SpeedRunGrid;
@@ -565,6 +545,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGrid AS
            rn.LevelID,   
            l.Name AS LevelName,
            rn.SubCategoryVariableValueIDs,
+           SubCategoryVariableValueNames.Value AS SubCategoryVariableValueNames,
            p.ID AS PlatformID,
            p.Name AS PlatformName,
            rn.Rank,
@@ -581,102 +562,16 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGrid AS
     LEFT JOIN tbl_Level l ON l.ID = rn.LevelID    
     LEFT JOIN tbl_Platform p ON p.ID = rn.PlatformID
   	LEFT JOIN LATERAL (
-		SELECT CONCAT('[', p1.Value, ']') Value
-		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"ID":', CONVERT(p.ID,CHAR), ',"Name":"', REPLACE(REPLACE(p.Name,"\\","\\\\"),"\"","\\\""), '","ColorLight":"', COALESCE(ps.ColorLight,''), '","ColorToLight":"', COALESCE(ps.ColorToLight,''), '","ColorDark":"', COALESCE(ps.ColorDark,''), '","ColorToDark":"', COALESCE(ps.ColorToDark,'')), '"}' ORDER BY rp.ID SEPARATOR ',') Value
-	        FROM tbl_SpeedRun_Player rp
-	        JOIN tbl_Player p ON p.ID = rp.PlayerID
-	        LEFT JOIN tbl_Player_NameStyle ps ON ps.PlayerID = p.ID 
-	        WHERE rp.SpeedRunID = rn.ID
-	        AND rp.Deleted = 0	        
-        ) p1
-    ) Players ON TRUE    
-  	LEFT JOIN LATERAL (
-		SELECT CONCAT('[', v1.Value, ']') Value
-		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"ID":', CONVERT(va.ID,CHAR), ',"Name":"', REPLACE(REPLACE(va.Name,"\\","\\\\"),"\"","\\\""), '","VariableID:', CONVERT(va.VariableID,CHAR)), '"}' ORDER BY rv.ID SEPARATOR ',') Value        
-			FROM tbl_SpeedRun_VariableValue rv
-			JOIN tbl_VariableValue va ON va.ID = rv.VariableValueID 
-	        WHERE rv.SpeedRunID = rn.ID
-	        AND rv.Deleted = 0	        
-        ) v1
-    ) VariableValues ON TRUE
-  	LEFT JOIN LATERAL (
-		SELECT CONCAT('[', v1.Value, ']') Value
-		FROM (
-			SELECT GROUP_CONCAT('{', rv.VideoLinkUrl, '"}' ORDER BY rv.ID SEPARATOR ',') Value
-	        FROM tbl_SpeedRun_Video rv
-	        WHERE rv.SpeedRunID = rn.ID
-	        AND rv.Deleted = 0	        
-        ) v1
-    ) Videos ON TRUE;
-
-	-- vw_SpeedRunGridPlayer
-	DROP VIEW IF EXISTS vw_SpeedRunGridPlayer;
-	
-	CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGridPlayer AS
-	
-		SELECT rn.ID,
-			   rn.Code,
-	           rn.GameID,
-	           rn.CategoryTypeID,
-	           rn.CategoryID,
-	           rn.CategoryName,
-	           rn.IsTimerAscending,
-	           rn.IsMiscellaneous,
-	           rn.LevelID,
-	           rn.LevelName,           
-	           rn.PlatformID,
-	           rn.PlatformName,
-	           rn.SubCategoryVariableValueIDs,
-	           rn.VariableValuesJson,
-	           rn.PlayersJson,
-	           rn.VideosJson,
-	           rn.`Rank`,
-	           rn.PrimaryTime,
-	           rn.DateSubmitted,
-	           rn.VerifyDate,
-	           rn.SrcUrl,
-	           rp.PlayerID
-	    FROM vw_SpeedRunGrid rn
-	    JOIN tbl_SpeedRun_Player rp ON rp.SpeedRunID = rn.ID;   
-   
-/*
--- vw_SpeedRunGrid
-DROP VIEW IF EXISTS vw_SpeedRunGrid;
-
-CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGrid AS
-
-    SELECT rn.ID,
-    	   rn.Code,
-           rn.GameID,
-           rn.CategoryTypeID,
-           rn.CategoryID,
-           rn.LevelID,    
-           SubCategoryVariableValueIDs.Value AS SubCategoryVariableValueIDs,
-           p.ID AS PlatformID,
-           p.Name AS PlatformName,
-           rn.Rank,
-           rn.PrimaryTime,
-           rn.DateSubmitted,
-           rn.VerifyDate,
-           rl.SrcUrl,
-           Players.Value AS PlayersJson,
-           VariableValues.Value AS VariableValuesJson,
-           Videos.Value AS VideosJson
-    FROM tbl_SpeedRun rn
-    JOIN tbl_SpeedRun_Link rl ON rl.SpeedRunID = rn.ID
-    LEFT JOIN tbl_Platform p ON p.ID = rn.PlatformID
-  	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONVERT(rv.VariableValueID,CHAR) ORDER BY rv.ID SEPARATOR ',') Value
+		SELECT GROUP_CONCAT(va.Name ORDER BY rv.ID SEPARATOR ', ') Value
 	    FROM tbl_SpeedRun_VariableValue rv
 	    JOIN tbl_Variable v ON v.ID = rv.VariableID AND v.IsSubCategory = 1
+	    JOIN tbl_VariableValue va ON va.ID = rv.VariableValueID
 	    WHERE rv.SpeedRunID = rn.ID
-	) SubCategoryVariableValueIDs ON TRUE    
+	) SubCategoryVariableValueNames ON TRUE    
   	LEFT JOIN LATERAL (
 		SELECT CONCAT('[', p1.Value, ']') Value
 		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"ID":', CONVERT(p.ID,CHAR), ',"Name":"', REPLACE(REPLACE(p.Name,"\\","\\\\"),"\"","\\\""), '","ColorLight":"', COALESCE(ps.ColorLight,''), '","ColorToLight":"', COALESCE(ps.ColorToLight,''), '","ColorDark":"', COALESCE(ps.ColorDark,''), '","ColorToDark":"', COALESCE(ps.ColorToDark,'')), '"}' ORDER BY rp.ID SEPARATOR ',') Value
+			SELECT GROUP_CONCAT('{', CONCAT('"ID":', CONVERT(p.ID,CHAR), ',"Name":"', REPLACE(REPLACE(p.Name,"\\","\\\\"),"\"","\\\""), '","Abbr":"', REPLACE(REPLACE(p.Abbr,"\\","\\\\"),"\"","\\\""), '","ColorLight":"', COALESCE(ps.ColorLight,''), '","ColorToLight":"', COALESCE(ps.ColorToLight,''), '","ColorDark":"', COALESCE(ps.ColorDark,''), '","ColorToDark":"', COALESCE(ps.ColorToDark,'')), '"}' ORDER BY rp.ID SEPARATOR ',') Value
 	        FROM tbl_SpeedRun_Player rp
 	        JOIN tbl_Player p ON p.ID = rp.PlayerID
 	        LEFT JOIN tbl_Player_NameStyle ps ON ps.PlayerID = p.ID 
@@ -685,10 +580,10 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGrid AS
         ) p1
     ) Players ON TRUE    
   	LEFT JOIN LATERAL (
-		SELECT CONCAT('[', v1.Value, ']') Value
+		SELECT CONCAT('{', v1.Value, '}') Value
 		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT(CONVERT(rv.VariableID,CHAR), ',', CONVERT(rv.VariableValueID,CHAR)), '}' ORDER BY rv.ID SEPARATOR ',') Value
-	        FROM tbl_SpeedRun_VariableValue rv
+			SELECT GROUP_CONCAT('"', CONCAT(CONVERT(rv.VariableValueID,CHAR), '":', CONVERT(rv.VariableID,CHAR)) ORDER BY rv.ID SEPARATOR ',') Value        
+			FROM tbl_SpeedRun_VariableValue rv
 	        WHERE rv.SpeedRunID = rn.ID
 	        AND rv.Deleted = 0	        
         ) v1
@@ -696,13 +591,14 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGrid AS
   	LEFT JOIN LATERAL (
 		SELECT CONCAT('[', v1.Value, ']') Value
 		FROM (
-			SELECT GROUP_CONCAT('{', rv.VideoLinkUrl, '"}' ORDER BY rv.ID SEPARATOR ',') Value
+			SELECT GROUP_CONCAT('"', rv.VideoLinkUrl, '"' ORDER BY rv.ID SEPARATOR ',') Value
 	        FROM tbl_SpeedRun_Video rv
 	        WHERE rv.SpeedRunID = rn.ID
 	        AND rv.Deleted = 0	        
         ) v1
-    ) Videos ON TRUE;
-   
+    ) Videos ON TRUE
+   WHERE rn.Deleted = 0;
+
 -- vw_SpeedRunGridPlayer
 DROP VIEW IF EXISTS vw_SpeedRunGridPlayer;
 
@@ -711,17 +607,17 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGridPlayer AS
 	SELECT rn.ID,
 		   rn.Code,
            rn.GameID,
-           c.CategoryTypeID,
-           c.ID AS CategoryID,
-           c.Name AS CategoryName,
-           c.IsTimerAscending,
-           c.IsMiscellaneous,
-           l.ID AS LevelID,
-           l.Name AS LevelName,           
+           rn.CategoryTypeID,
+           rn.CategoryID,
+           rn.CategoryName,
+           rn.IsTimerAscending,
+           rn.IsMiscellaneous,
+           rn.LevelID,
+           rn.LevelName,           
            rn.PlatformID,
            rn.PlatformName,
            rn.SubCategoryVariableValueIDs,
-           SubCategoryVariableValues.Value AS SubCategoryVariableValues,
+           rn.SubCategoryVariableValueNames,
            rn.VariableValuesJson,
            rn.PlayersJson,
            rn.VideosJson,
@@ -731,41 +627,108 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGridPlayer AS
            rn.VerifyDate,
            rn.SrcUrl,
            rp.PlayerID
-    FROM vw_SpeedRunGrid rn
-    JOIN tbl_SpeedRun_Player rp ON rp.SpeedRunID = rn.ID
+	    FROM vw_SpeedRunGrid rn
+	    JOIN tbl_SpeedRun_Player rp ON rp.SpeedRunID = rn.ID
+	    WHERE rp.Deleted = 0;   
+   
+-- vw_SpeedRunSummary
+DROP VIEW IF EXISTS vw_SpeedRunSummary;
+
+CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunSummary AS
+
+ 	SELECT rs.ID AS SortOrder,
+    	   rn.ID,	  
+    	   rn.Code, 
+           g.ID AS GameID,
+           g.Name AS GameName,
+		   g.Abbr AS GameAbbr, 
+	   	   g.ShowMilliseconds,   
+           gl.CoverImageUrl AS GameCoverImageUrl,        
+           ct.ID AS CategoryTypeID,
+           ct.Name AS CategoryTypeName,           
+           c.ID AS CategoryID,
+           c.Name AS CategoryName,
+		   l.ID AS LevelID,
+		   l.Name AS LevelName,
+           rn.SubCategoryVariableValueIDs,
+           rn.`Rank`,
+           rn.PrimaryTime,
+           rn.VerifyDate,
+           SubCategoryVariableValueNames.Value AS SubCategoryVariableValueNamesJson,
+           Players.Value AS PlayersJson,
+           Videos.Value AS VideosJson     
+    FROM tbl_SpeedRun rn
+    JOIN tbl_SpeedRun_Summary rs ON rs.SpeedRunID = rn.ID
+    JOIN tbl_Game g ON g.ID = rn.GameID
+	JOIN tbl_Game_Link gl ON gl.GameID = g.ID
     JOIN tbl_Category c ON c.ID = rn.CategoryID
-    LEFT JOIN tbl_Level l ON l.ID = rn.LevelID
+    JOIN tbl_CategoryType ct ON ct.ID = c.CategoryTypeID
+    LEFT JOIN tbl_Level l ON l.ID = rn.LevelID 
   	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(va.Value ORDER BY rv.ID SEPARATOR ', ') Value
-	    FROM tbl_SpeedRun_VariableValue rv
-	    JOIN tbl_Variable v ON v.ID = rv.VariableID AND v.IsSubCategory = 1
-	    JOIN tbl_VariableValue va ON va.ID = rv.VariableValueID
-	    WHERE rv.SpeedRunID = rn.ID
-	) SubCategoryVariableValues ON TRUE;   
-*/
+		SELECT CONCAT('[', v1.Value, ']') Value
+		FROM (
+			SELECT GROUP_CONCAT('"', va.Name, '"' ORDER BY rv.ID SEPARATOR ',') Value
+		    FROM tbl_SpeedRun_VariableValue rv
+		    JOIN tbl_Variable v ON v.ID = rv.VariableID AND v.IsSubCategory = 1
+		    JOIN tbl_VariableValue va ON va.ID = rv.VariableValueID
+		    WHERE rv.SpeedRunID = rn.ID
+	        AND rv.Deleted = 0	        
+        ) v1
+    ) SubCategoryVariableValueNames ON TRUE	
+  	LEFT JOIN LATERAL (
+		SELECT CONCAT('[', p1.Value, ']') Value
+		FROM (
+			SELECT GROUP_CONCAT('{', CONCAT('"ID":', CONVERT(p.ID,CHAR), ',"Name":"', REPLACE(REPLACE(p.Name,"\\","\\\\"),"\"","\\\""), '","Abbr":"', REPLACE(REPLACE(p.Abbr,"\\","\\\\"),"\"","\\\""), '","ColorLight":"', COALESCE(ps.ColorLight,''), '","ColorToLight":"', COALESCE(ps.ColorToLight,''), '","ColorDark":"', COALESCE(ps.ColorDark,''), '","ColorToDark":"', COALESCE(ps.ColorToDark,'')), '"}' ORDER BY rp.ID SEPARATOR ',') Value
+	        FROM tbl_SpeedRun_Player rp
+	        JOIN tbl_Player p ON p.ID = rp.PlayerID
+	        LEFT JOIN tbl_Player_NameStyle ps ON ps.PlayerID = p.ID 
+	        WHERE rp.SpeedRunID = rn.ID
+	        AND rp.Deleted = 0	        
+        ) p1
+    ) Players ON TRUE      
+  	LEFT JOIN LATERAL (
+		SELECT CONCAT('[', v1.Value, ']') Value
+		FROM (
+			SELECT GROUP_CONCAT('{', CONCAT('"EmbeddedVideoLinkUrl":"', COALESCE(rv.EmbeddedVideoLinkUrl,''), '","ThumbnailLinkUrl":"', COALESCE(rv.ThumbnailLinkUrl,'')), '"}' ORDER BY rv.ID SEPARATOR ',') Value			
+	        FROM tbl_SpeedRun_Video rv
+	        WHERE rv.SpeedRunID = rn.ID
+	        AND rv.Deleted = 0	        
+        ) v1
+    ) Videos ON TRUE
+    WHERE rn.Deleted = 0;
 
 -- vw_User
 DROP VIEW IF EXISTS vw_User;
 
 CREATE DEFINER=`root`@`localhost` VIEW vw_User AS
 
-    SELECT u.ID AS UserID,
-	u.Username,
-	u.Email,
-	us.IsDarkTheme,
-	COALESCE(SpeedRunListCategoryIDs.Value, DefaultSpeedRunListCategoryIDs.Value) AS SpeedRunListCategoryIDs
-    FROM tbl_User u
-	LEFT JOIN tbl_User_Setting us ON us.UserID = u.ID
+    SELECT ua.ID AS UserID,
+	ua.Username,
+	ua.Email,
+	ua.`Password`,
+	ua.PromptToChange,
+	ua.Locked,
+	ua.Active,
+	ua.Deleted,
+	ua.CreatedBy,
+	ua.CreatedDate,
+	ua.ModifiedBy,
+	ua.ModifiedDate,
+	ue.IsDarkTheme,
+	COALESCE(SummaryListIDs.Value, DefaultSummaryListIDs.Value) AS SummaryListIDs
+    FROM tbl_User ua
+	LEFT JOIN tbl_User_Setting ue ON ue.UserID = ua.ID
 	LEFT JOIN LATERAL (
-		SELECT GROUP_CONCAT(CONVERT(uc.SpeedRunListCategoryID,CHAR) ORDER BY uc.ID SEPARATOR ',') Value
-	    FROM tbl_User_SpeedRunListCategory uc
-	    WHERE uc.UserID = u.ID   
-	) SpeedRunListCategoryIDs ON TRUE
+		SELECT GROUP_CONCAT(CONVERT(uc.SummaryListID,CHAR) ORDER BY uc.ID SEPARATOR ',') Value
+	    FROM tbl_User_SummaryList uc
+	    WHERE uc.UserID = ua.ID   
+	) SummaryListIDs ON TRUE
 	LEFT JOIN LATERAL (
 		SELECT GROUP_CONCAT(CONVERT(sc.ID,CHAR) SEPARATOR ',') Value
-	    FROM tbl_SpeedRunListCategory sc
+	    FROM tbl_SummaryList sc
 	    WHERE sc.IsDefault = 1 
-	) DefaultSpeedRunListCategoryIDs ON TRUE;
+	) DefaultSummaryListIDs ON TRUE	
+	WHERE ua.Deleted = 0;   
 
 /*********************************************/
 -- create/alter procs
@@ -1011,11 +974,11 @@ BEGIN
 END $$
 DELIMITER ;
 
--- ImportUpdateSpeedRunOrdered
-DROP PROCEDURE IF EXISTS ImportUpdateSpeedRunOrdered;
+-- ImportUpdateSpeedRunSummary
+DROP PROCEDURE IF EXISTS ImportUpdateSpeedRunSummary;
 
 DELIMITER $$
-CREATE DEFINER=`root`@`localhost` PROCEDURE ImportUpdateSpeedRunOrdered(
+CREATE DEFINER=`root`@`localhost` PROCEDURE ImportUpdateSpeedRunSummary(
 	IN LastImportDate DATETIME
 )
 BEGIN	
@@ -1025,19 +988,20 @@ BEGIN
 
 	SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 
-	UPDATE tbl_SpeedRun_Ordered dn
+	UPDATE tbl_SpeedRun_Summary dn
 	JOIN tbl_SpeedRun rn ON rn.ID = dn.SpeedRunID
 	SET dn.Deleted = 1
 	WHERE dn.Deleted = 0
 	AND COALESCE(rn.VerifyDate, '1753-01-01 00:00:00') < StartDate;
 
-	INSERT INTO tbl_SpeedRun_Ordered (SpeedRunID, Deleted)
+	INSERT INTO tbl_SpeedRun_Summary (SpeedRunID, Deleted)
 	SELECT rn.ID, 0
 	FROM tbl_SpeedRun rn
 	WHERE rn.Deleted = 0
 	AND rn.VerifyDate >= StartDate
 	AND rn.CreatedDate > LastImportDate
-	AND NOT EXISTS (SELECT 1 FROM tbl_SpeedRun_Ordered rn2 WHERE rn2.SpeedRunID = rn.ID)
+	AND EXISTS (SELECT 1 FROM tbl_SpeedRun_Video rv WHERE rv.SpeedRunID = rn.ID AND rv.EmbeddedVideoLinkUrl IS NOT NULL)
+	AND NOT EXISTS (SELECT 1 FROM tbl_SpeedRun_Summary rn2 WHERE rn2.SpeedRunID = rn.ID)
 	ORDER BY rn.VerifyDate;
 	
 END $$
@@ -1063,21 +1027,134 @@ BEGIN
 	) TotalSpeedRuns ON TRUE  	
 	LEFT JOIN LATERAL (
 		SELECT COUNT(*) AS Value				
-		FROM tbl_SpeedRun_Player sp
-		JOIN tbl_SpeedRun sr ON sr.ID=sp.SpeedRunID AND sr.`Rank`=1
+		FROM tbl_SpeedRun sr
+		JOIN tbl_SpeedRun_Player sp ON sp.SpeedRunID=sr.ID AND sr.`Rank`=1
 		WHERE sp.PlayerID = p.ID
 	) TotalWorldRecords ON TRUE  		
 	LEFT JOIN LATERAL (
 		SELECT COUNT(*) AS Value				
 		FROM (
 			SELECT sr.GameID, sr.CategoryID, sr.LevelID, sr.SubCategoryVariableValueIDs
-			FROM tbl_SpeedRun_Player sp
-			JOIN tbl_SpeedRun sr ON sr.ID=sp.SpeedRunID 
+			FROM tbl_SpeedRun sr
+			JOIN tbl_SpeedRun_Player sp ON sp.SpeedRunID=sr.ID
 			WHERE sp.PlayerID = p.ID
 			GROUP BY sr.GameID, sr.CategoryID, sr.LevelID, sr.SubCategoryVariableValueIDs
 		) SubQuery
 	) TotalPersonalBests ON TRUE
 	WHERE p.ID = PlayerID;
+END $$
+DELIMITER ;
+
+-- GetSummaryListResults
+DROP PROCEDURE IF EXISTS GetSummaryListResults;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE GetSummaryListResults
+(
+	IN SummaryListID INT,
+	IN TopAmount INT,
+	IN OrderValueOffset INT,
+	IN CategoryTypeID INT
+)
+BEGIN	
+	SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+
+	-- New
+	IF SummaryListID = 0 THEN
+		SELECT rn.SortOrder,
+			   rn.ID,	  
+			   rn.Code, 
+		       rn.GameID,
+		       rn.GameName,
+			   rn.GameAbbr, 
+		   	   rn.ShowMilliseconds,   
+		       rn.GameCoverImageUrl,        
+		       rn.CategoryTypeID,
+		       rn.CategoryTypeName,           
+		       rn.CategoryID,
+		       rn.CategoryName,
+			   rn.LevelID,
+			   rn.LevelName,
+		       rn.`Rank`,
+		       rn.PrimaryTime,
+		       rn.VerifyDate,
+		       rn.SubCategoryVariableValueNamesJson,
+		       rn.PlayersJson,
+		       rn.VideosJson     
+		      FROM vw_SpeedRunSummary rn
+		      WHERE ((OrderValueOffset IS NULL) OR (rn.SortOrder < OrderValueOffset))
+			  AND ((CategoryTypeID IS NULL) OR (rn.CategoryTypeID = CategoryTypeID))          
+		      ORDER BY rn.SortOrder DESC
+		      LIMIT TopAmount;
+	ELSEIF SummaryListID = 1 THEN
+		SELECT rn.SortOrder,
+			   rn.ID,	  
+			   rn.Code, 
+		       rn.GameID,
+		       rn.GameName,
+			   rn.GameAbbr, 
+		   	   rn.ShowMilliseconds,   
+		       rn.GameCoverImageUrl,        
+		       rn.CategoryTypeID,
+		       rn.CategoryTypeName,           
+		       rn.CategoryID,
+		       rn.CategoryName,
+			   rn.LevelID,
+			   rn.LevelName,
+		       rn.`Rank`,
+		       rn.PrimaryTime,
+		       rn.VerifyDate,
+		       rn.SubCategoryVariableValueNamesJson,
+		       rn.PlayersJson,
+		       rn.VideosJson     
+		      FROM vw_SpeedRunSummary rn
+		      WHERE ((OrderValueOffset IS NULL) OR (rn.SortOrder < OrderValueOffset))
+			  AND ((CategoryTypeID IS NULL) OR (rn.CategoryTypeID = CategoryTypeID))
+			  AND rn.`Rank` = 1
+			  AND EXISTS (SELECT 1
+		  					FROM tbl_SpeedRun rn1 
+		  					WHERE rn1.GameID = rn.GameID
+		  					AND rn1.CategoryID = rn.CategoryID
+		  					AND COALESCE(rn1.LevelID,'') = COALESCE(rn.LevelID,'')
+		  					AND COALESCE(rn1.SubCategoryVariableValueIDs,'') = COALESCE(rn.SubCategoryVariableValueIDs,'')
+		  					AND rn1.`Rank` > 1)
+		      ORDER BY rn.SortOrder DESC
+		      LIMIT TopAmount; 	
+	ELSEIF SummaryListID = 2 THEN
+		SELECT rn.SortOrder,
+			   rn.ID,	  
+			   rn.Code, 
+		       rn.GameID,
+		       rn.GameName,
+			   rn.GameAbbr, 
+		   	   rn.ShowMilliseconds,   
+		       rn.GameCoverImageUrl,        
+		       rn.CategoryTypeID,
+		       rn.CategoryTypeName,           
+		       rn.CategoryID,
+		       rn.CategoryName,
+			   rn.LevelID,
+			   rn.LevelName,
+		       rn.`Rank`,
+		       rn.PrimaryTime,
+		       rn.VerifyDate,
+		       rn.SubCategoryVariableValueNamesJson,
+		       rn.PlayersJson,
+		       rn.VideosJson     
+		      FROM vw_SpeedRunSummary rn
+		      WHERE ((OrderValueOffset IS NULL) OR (rn.SortOrder < OrderValueOffset))
+			  AND ((CategoryTypeID IS NULL) OR (rn.CategoryTypeID = CategoryTypeID))
+			  AND rn.`Rank` <= 3
+			  AND EXISTS (SELECT 1
+		  					FROM tbl_SpeedRun rn1 
+		  					WHERE rn1.GameID = rn.GameID
+		  					AND rn1.CategoryID = rn.CategoryID
+		  					AND COALESCE(rn1.LevelID,'') = COALESCE(rn.LevelID,'')
+		  					AND COALESCE(rn1.SubCategoryVariableValueIDs,'') = COALESCE(rn.SubCategoryVariableValueIDs,'')
+		  					AND rn1.`Rank` > 3)
+		      ORDER BY rn.SortOrder DESC
+		      LIMIT TopAmount;		     
+	END IF;
 END $$
 DELIMITER ;
 
@@ -1087,7 +1164,9 @@ DELIMITER ;
 INSERT INTO tbl_Setting(Name, Str, Num, Dte)
 SELECT 'LastImportDate', NULL, NULL, NULL
 UNION ALL
-SELECT 'GameLastImportRefDate', NULL, NULL, NULL;
+SELECT 'GameLastImportRefDate', NULL, NULL, NULL
+UNION ALL
+SELECT 'SpeedRunLastImportRefDate', NULL, NULL, NULL;
 
 INSERT INTO tbl_CategoryType (ID, Name)
 SELECT '0', 'PerGame'
@@ -1107,6 +1186,13 @@ INSERT INTO tbl_PlayerType (ID, Name)
 SELECT '0', 'User'
 UNION ALL
 SELECT '1', 'Guest';
+
+INSERT INTO tbl_SummaryList (ID, Name, DisplayName, Description, IsDefault, DefaultSortOrder) 
+SELECT '0', 'New', 'New', 'Newly verified runs', 1, 0
+UNION ALL
+SELECT '1', 'WorldRecord', 'WRs', 'World Records in category with pre-existing runs', 1, 1
+UNION ALL
+SELECT '1', 'Top3', 'Top 3', 'Runs in top 3 of category with pre-existing runs', 1, 1
 
 /*
 INSERT INTO tbl_Platform(Name, Code, Deleted)
