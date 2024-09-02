@@ -323,6 +323,7 @@ CREATE TABLE tbl_SpeedRun_Player
 	PRIMARY KEY (ID)	 
 );
 CREATE INDEX IDX_tbl_SpeedRun_Player_SpeedRunID ON tbl_SpeedRun_Player (SpeedRunID);
+CREATE INDEX IDX_tbl_SpeedRun_Player_PlayerID ON tbl_SpeedRun_Player (PlayerID);
 
 -- tbl_SpeedRun_VariableValue
 DROP TABLE IF EXISTS tbl_SpeedRun_VariableValue;
@@ -810,7 +811,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunDetail AS
   	LEFT JOIN LATERAL (
 		SELECT CONCAT('{', v1.Value, '}') Value
 		FROM (
-			SELECT GROUP_CONCAT('"', CONCAT(REPLACE(REPLACE(v.Name,"\\","\\\\"),"\"","\\\""), '":', REPLACE(REPLACE(va.Name,"\\","\\\\"),"\"","\\\"")) ORDER BY rv.ID SEPARATOR ',') Value        
+			SELECT GROUP_CONCAT('"', CONCAT(REPLACE(REPLACE(v.Name,"\\","\\\\"),"\"","\\\""), '":"', REPLACE(REPLACE(va.Name,"\\","\\\\"),"\"","\\\""), '"') ORDER BY rv.ID SEPARATOR ',') Value        
 			FROM tbl_SpeedRun_VariableValue rv
     		JOIN tbl_Variable v ON v.ID = rv.VariableID
 			JOIN tbl_VariableValue va ON va.ID = rv.VariableValueID
@@ -1147,33 +1148,33 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE GetPlayerSpeedRunCounts(
 	IN PlayerID INT
 )
 BEGIN
-	SELECT p.ID,
-	TotalSpeedRuns.Value AS TotalSpeedRuns,
-	TotalWorldRecords.Value AS TotalWorldRecords,
-	TotalPersonalBests.Value AS TotalPersonalBests
-	FROM tbl_Player p
-	LEFT JOIN LATERAL (
-		SELECT COUNT(*) AS Value
-		FROM tbl_SpeedRun_Player sp
-		WHERE sp.PlayerID = p.ID 
-	) TotalSpeedRuns ON TRUE  	
-	LEFT JOIN LATERAL (
-		SELECT COUNT(*) AS Value				
-		FROM tbl_SpeedRun sr
-		JOIN tbl_SpeedRun_Player sp ON sp.SpeedRunID=sr.ID AND sr.`Rank`=1
-		WHERE sp.PlayerID = p.ID
-	) TotalWorldRecords ON TRUE  		
-	LEFT JOIN LATERAL (
-		SELECT COUNT(*) AS Value				
-		FROM (
-			SELECT sr.GameID, sr.CategoryID, sr.LevelID, sr.SubCategoryVariableValueIDs
-			FROM tbl_SpeedRun sr
-			JOIN tbl_SpeedRun_Player sp ON sp.SpeedRunID=sr.ID
-			WHERE sp.PlayerID = p.ID
-			GROUP BY sr.GameID, sr.CategoryID, sr.LevelID, sr.SubCategoryVariableValueIDs
-		) SubQuery
-	) TotalPersonalBests ON TRUE
-	WHERE p.ID = PlayerID;
+	DECLARE TotalSpeedRuns INT DEFAULT 0;
+	DECLARE TotalWorldRecords INT DEFAULT 0;
+	DECLARE TotalPersonalBests INT DEFAULT 0;
+
+	SELECT COUNT(*) INTO TotalSpeedRuns
+	FROM tbl_SpeedRun_Player sp
+	WHERE sp.PlayerID = PlayerID;
+
+	SELECT COUNT(*) INTO TotalWorldRecords
+	FROM tbl_SpeedRun_Player sp
+	JOIN tbl_SpeedRun sr ON sr.ID = sp.SpeedRunID AND sr.`Rank`=1
+	WHERE sp.PlayerID = PlayerID;
+
+	SELECT COUNT(*) INTO TotalPersonalBests
+	FROM (
+			SELECT sr.GameID, sr.CategoryTypeID, sr.CategoryID, sr.LevelID, sr.SubCategoryVariableValueIDs
+			FROM tbl_SpeedRun_Player sp
+			JOIN tbl_SpeedRun sr ON sr.ID = sp.SpeedRunID
+			WHERE sp.PlayerID = PlayerID
+			GROUP BY sr.GameID, sr.CategoryTypeID, sr.CategoryID, sr.LevelID, sr.SubCategoryVariableValueIDs
+		) SubQuery;
+
+	SELECT PlayerID AS ID,
+	TotalSpeedRuns,
+	TotalWorldRecords,
+	TotalPersonalBests;
+
 END $$
 DELIMITER ;
 
