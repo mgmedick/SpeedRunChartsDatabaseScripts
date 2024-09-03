@@ -394,58 +394,46 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_Game AS
     FROM tbl_Game g
     JOIN tbl_Game_Link gl ON gl.GameID = g.ID
 	LEFT JOIN LATERAL (
-		SELECT CONCAT('[', ct1.Value, ']') Value
-		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"ID":', CONVERT(gc.ID,CHAR), ',"CategoryTypeID":', CONVERT(gc.CategoryTypeID,CHAR)), '}' ORDER BY gc.ID SEPARATOR ',') Value
-		    FROM tbl_Game_CategoryType gc		    
-	        WHERE gc.GameID = g.ID
-	        AND gc.Deleted = 0
-        ) ct1
+		SELECT JSON_ARRAYAGG(JSON_OBJECT('ID', gc.ID, 'CategoryTypeID', gc.CategoryTypeID)) Value
+	    FROM tbl_Game_CategoryType gc		    
+        WHERE gc.GameID = g.ID
+        AND gc.Deleted = 0
+        ORDER BY gc.ID
     ) GameCategoryTypes ON TRUE
 	LEFT JOIN LATERAL (
-		SELECT CONCAT('[', c1.Value, ']') Value
-		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"ID":', CONVERT(c.ID,CHAR), ',"Name":"', REPLACE(REPLACE(c.Name,"\\","\\\\"),"\"","\\\""), '","Code":"', c.Code, '","CategoryTypeID":', CONVERT(c.CategoryTypeID,CHAR), ',"IsMiscellaneous":', CASE c.IsMiscellaneous WHEN 1 THEN 'true' ELSE 'false' END, ',"IsTimerAscending":', CASE c.IsTimerAscending WHEN 1 THEN 'true' ELSE 'false' END), '}' ORDER BY c.IsMiscellaneous, c.ID SEPARATOR ',') Value
-	        FROM tbl_Category c
-	        WHERE c.GameID = g.ID
-	        AND c.Deleted = 0	        
-        ) c1
-    ) Categories ON TRUE    
+		SELECT JSON_ARRAYAGG(JSON_OBJECT('ID', c.ID, 'Name', c.Name, 'Code', c.Code, 'CategoryTypeID', c.CategoryTypeID, 'IsMiscellaneous', CASE c.IsMiscellaneous WHEN 1 THEN CAST(TRUE AS JSON) ELSE CAST(FALSE AS JSON) END, 'IsTimerAscending', CASE c.IsTimerAscending WHEN 1 THEN CAST(TRUE AS JSON) ELSE CAST(FALSE AS JSON) END)) Value
+	    FROM tbl_Category c
+	    WHERE c.GameID = g.ID
+	    AND c.Deleted = 0
+        ORDER BY c.IsMiscellaneous, c.ID 
+    ) Categories ON TRUE 
 	LEFT JOIN LATERAL (
-		SELECT CONCAT('[', l1.Value, ']') Value
-		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"ID":', CONVERT(l.ID,CHAR), ',"Name":"', REPLACE(REPLACE(l.Name,"\\","\\\\"),"\"","\\\""), '","Code":"', l.Code), '"}' ORDER BY l.ID SEPARATOR ',') Value
-	        FROM tbl_Level l
-	        WHERE l.GameID = g.ID
-	        AND l.Deleted = 0
-        ) l1
-    ) Levels ON TRUE
-  	LEFT JOIN LATERAL (
-		SELECT CONCAT('[', v1.Value, ']') Value
-		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"ID":', CONVERT(v.ID,CHAR), ',"Name":"', REPLACE(REPLACE(v.Name,"\\","\\\\"),"\"","\\\""), '","Code":"', v.Code, '","VariableScopeTypeID":', CONVERT(v.VariableScopeTypeID, CHAR), ',"CategoryID":', COALESCE(CONVERT(v.CategoryID, CHAR),'null'), ',"LevelID":', COALESCE(CONVERT(v.LevelID, CHAR),'null'), ',"IsSubCategory":', CASE v.IsSubCategory WHEN 1 THEN 'true' ELSE 'false' END), '}' ORDER BY v.SortOrder, v.ID SEPARATOR ',') Value
-	        FROM tbl_Variable v
-	        WHERE v.GameID = g.ID
-	        AND v.Deleted = 0	        
-        ) v1
+		SELECT JSON_ARRAYAGG(JSON_OBJECT('ID', l.ID, 'Name', l.Name, 'Code', l.Code)) Value
+	    FROM tbl_Level l
+	    WHERE l.GameID = g.ID
+	    AND l.Deleted = 0
+        ORDER BY l.ID 
+    ) Levels ON TRUE     
+	LEFT JOIN LATERAL (
+		SELECT JSON_ARRAYAGG(JSON_OBJECT('ID', v.ID, 'Name', v.Name, 'Code', v.Code, 'VariableScopeTypeID', v.VariableScopeTypeID, 'CategoryID', v.CategoryID, 'LevelID', v.LevelID, 'IsSubCategory', CASE v.IsSubCategory WHEN 1 THEN CAST(TRUE AS JSON) ELSE CAST(FALSE AS JSON) END)) Value
+	    FROM tbl_Variable v
+	    WHERE v.GameID = g.ID
+	    AND v.Deleted = 0	 
+        ORDER BY v.SortOrder, v.ID 
     ) Variables ON TRUE   
-  	LEFT JOIN LATERAL (
-		SELECT CONCAT('[', v2.Value, ']') Value
-		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"ID":', CONVERT(v.ID,CHAR), ',"Name":"', REPLACE(REPLACE(v.Name,"\\","\\\\"),"\"","\\\""), '","Code":"', v.Code, '","VariableID":', CONVERT(v.VariableID,CHAR)), '}' ORDER BY v.ID SEPARATOR ',') Value
-	        FROM tbl_VariableValue v
-	        WHERE v.GameID = g.ID
-	        AND v.Deleted = 0	        
-        ) v2
-    ) VariableValues ON TRUE 
-  	LEFT JOIN LATERAL (
-		SELECT CONCAT('[', p1.Value, ']') Value
-		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"ID":', CONVERT(gp.ID,CHAR), ',"PlatformID":', CONVERT(gp.PlatformID,CHAR)), '}' ORDER BY gp.PlatformID SEPARATOR ',') Value
-		    FROM tbl_Game_Platform gp
-	        WHERE gp.GameID = g.ID
-	        AND gp.Deleted = 0	        
-        ) p1
+	LEFT JOIN LATERAL (
+		SELECT JSON_ARRAYAGG(JSON_OBJECT('ID', v.ID, 'Name', v.Name, 'Code', v.Code, 'VariableID', v.VariableID)) Value
+	    FROM tbl_VariableValue v
+	    WHERE v.GameID = g.ID
+	    AND v.Deleted = 0	
+        ORDER BY v.ID 
+    ) VariableValues ON TRUE   
+	LEFT JOIN LATERAL (
+		SELECT JSON_ARRAYAGG(JSON_OBJECT('ID', gp.ID, 'PlatformID', gp.PlatformID)) Value
+	    FROM tbl_Game_Platform gp
+	    WHERE gp.GameID = g.ID
+	    AND gp.Deleted = 0	
+        ORDER BY gp.PlatformID 
     ) GamePlatforms ON TRUE
    WHERE g.Deleted = 0;
   
@@ -501,33 +489,27 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRun AS
            Videos.Value AS VideosJson
     FROM tbl_SpeedRun rn
     JOIN tbl_SpeedRun_Link rl ON rl.SpeedRunID = rn.ID  
-  	LEFT JOIN LATERAL (
-		SELECT CONCAT('[', p1.Value, ']') Value
-		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"ID":', CONVERT(rp.ID,CHAR), ',"PlayerID":', CONVERT(rp.PlayerID,CHAR)), '}' ORDER BY rp.ID SEPARATOR ',') Value
-	        FROM tbl_SpeedRun_Player rp
-	        WHERE rp.SpeedRunID = rn.ID
-	        AND rp.Deleted = 0	        
-        ) p1
+	LEFT JOIN LATERAL (
+		SELECT JSON_ARRAYAGG(JSON_OBJECT('ID', rp.ID, 'PlayerID', rp.PlayerID)) Value
+        FROM tbl_SpeedRun_Player rp
+        WHERE rp.SpeedRunID = rn.ID
+        AND rp.Deleted = 0	   
+        ORDER BY rp.ID
     ) Players ON TRUE    
-  	LEFT JOIN LATERAL (
-		SELECT CONCAT('[', v1.Value, ']') Value
-		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"ID":', CONVERT(rv.ID,CHAR), ',"VariableID":', CONVERT(rv.VariableID,CHAR), ',"VariableValueID":', CONVERT(rv.VariableValueID,CHAR)), '}' ORDER BY rv.ID SEPARATOR ',') Value
-	        FROM tbl_SpeedRun_VariableValue rv
-	        WHERE rv.SpeedRunID = rn.ID
-	        AND rv.Deleted = 0	        
-        ) v1
-    ) VariableValues ON TRUE
-  	LEFT JOIN LATERAL (
-		SELECT CONCAT('[', v1.Value, ']') Value
-		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"ID":', CONVERT(rv.ID,CHAR), ',"VideoLinkUrl":"', rv.VideoLinkUrl), '"}' ORDER BY rv.ID SEPARATOR ',') Value
-	        FROM tbl_SpeedRun_Video rv
-	        WHERE rv.SpeedRunID = rn.ID
-	        AND rv.Deleted = 0	        
-        ) v1
-    ) Videos ON TRUE
+	LEFT JOIN LATERAL (
+		SELECT JSON_ARRAYAGG(JSON_OBJECT('ID', rv.ID, 'VariableID', rv.VariableID, 'VariableValueID', rv.VariableValueID)) Value
+        FROM tbl_SpeedRun_VariableValue rv
+        WHERE rv.SpeedRunID = rn.ID
+        AND rv.Deleted = 0	   
+        ORDER BY rv.ID
+    ) VariableValues ON TRUE    
+	LEFT JOIN LATERAL (
+		SELECT JSON_ARRAYAGG(JSON_OBJECT('ID', rv.ID, 'VideoLinkUrl', rv.VideoLinkUrl)) Value
+        FROM tbl_SpeedRun_Video rv
+        WHERE rv.SpeedRunID = rn.ID
+        AND rv.Deleted = 0	     
+        ORDER BY rv.ID
+    ) Videos ON TRUE    
     WHERE rn.Deleted = 0;
    
 -- vw_SpeedRunGrid
@@ -569,35 +551,29 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunGrid AS
 	    JOIN tbl_VariableValue va ON va.ID = rv.VariableValueID
 	    WHERE rv.SpeedRunID = rn.ID
 	) SubCategoryVariableValueNames ON TRUE    
-  	LEFT JOIN LATERAL (
-		SELECT CONCAT('[', p1.Value, ']') Value
-		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"ID":', CONVERT(p.ID,CHAR), ',"Name":"', REPLACE(REPLACE(p.Name,"\\","\\\\"),"\"","\\\""), '","Abbr":"', REPLACE(REPLACE(p.Abbr,"\\","\\\\"),"\"","\\\""), '","ColorLight":"', COALESCE(ps.ColorLight,''), '","ColorToLight":"', COALESCE(ps.ColorToLight,''), '","ColorDark":"', COALESCE(ps.ColorDark,''), '","ColorToDark":"', COALESCE(ps.ColorToDark,'')), '"}' ORDER BY rp.ID SEPARATOR ',') Value
-	        FROM tbl_SpeedRun_Player rp
-	        JOIN tbl_Player p ON p.ID = rp.PlayerID
-	        LEFT JOIN tbl_Player_NameStyle ps ON ps.PlayerID = p.ID 
-	        WHERE rp.SpeedRunID = rn.ID
-	        AND rp.Deleted = 0	        
-        ) p1
-    ) Players ON TRUE    
-  	LEFT JOIN LATERAL (
-		SELECT CONCAT('{', v1.Value, '}') Value
-		FROM (
-			SELECT GROUP_CONCAT('"', CONCAT(CONVERT(rv.VariableValueID,CHAR), '":', CONVERT(rv.VariableID,CHAR)) ORDER BY rv.ID SEPARATOR ',') Value        
-			FROM tbl_SpeedRun_VariableValue rv
-	        WHERE rv.SpeedRunID = rn.ID
-	        AND rv.Deleted = 0	        
-        ) v1
-    ) VariableValues ON TRUE
-  	LEFT JOIN LATERAL (
-		SELECT CONCAT('[', v1.Value, ']') Value
-		FROM (
-			SELECT GROUP_CONCAT('"', rv.VideoLinkUrl, '"' ORDER BY rv.ID SEPARATOR ',') Value
-	        FROM tbl_SpeedRun_Video rv
-	        WHERE rv.SpeedRunID = rn.ID
-	        AND rv.Deleted = 0	        
-        ) v1
-    ) Videos ON TRUE
+	LEFT JOIN LATERAL (
+		SELECT JSON_ARRAYAGG(JSON_OBJECT('ID', p.ID, 'Name', p.Name, 'Abbr', p.Abbr, 'ColorLight', ps.ColorLight, 'ColorToLight', ps.ColorToLight, 'ColorDark', ps.ColorDark, 'ColorToDark', ps.ColorToDark)) Value
+        FROM tbl_SpeedRun_Player rp
+        JOIN tbl_Player p ON p.ID = rp.PlayerID
+        LEFT JOIN tbl_Player_NameStyle ps ON ps.PlayerID = p.ID 
+        WHERE rp.SpeedRunID = rn.ID
+        AND rp.Deleted = 0	     
+        ORDER BY rp.ID
+    ) Players ON TRUE
+	LEFT JOIN LATERAL (
+		SELECT JSON_ARRAYAGG(JSON_OBJECT('ID', rv.VariableValueID, 'VariableID', rv.VariableID)) Value
+		FROM tbl_SpeedRun_VariableValue rv
+        WHERE rv.SpeedRunID = rn.ID
+        AND rv.Deleted = 0	  
+        ORDER BY rv.ID
+    ) VariableValues ON TRUE      
+	LEFT JOIN LATERAL (
+		SELECT JSON_ARRAYAGG(rv.VideoLinkUrl) Value
+        FROM tbl_SpeedRun_Video rv
+        WHERE rv.SpeedRunID = rn.ID
+        AND rv.Deleted = 0	       
+        ORDER BY rv.ID
+    ) Videos ON TRUE  
    WHERE rn.Deleted = 0;
 
 -- vw_SpeedRunGridPlayer
@@ -664,105 +640,33 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunSummary AS
 	JOIN tbl_Game_Link gl ON gl.GameID = g.ID
     JOIN tbl_Category c ON c.ID = rn.CategoryID
     JOIN tbl_CategoryType ct ON ct.ID = c.CategoryTypeID
-    LEFT JOIN tbl_Level l ON l.ID = rn.LevelID 
-  	LEFT JOIN LATERAL (
-		SELECT CONCAT('[', v1.Value, ']') Value
-		FROM (
-			SELECT GROUP_CONCAT('"', va.Name, '"' ORDER BY rv.ID SEPARATOR ',') Value
-		    FROM tbl_SpeedRun_VariableValue rv
-		    JOIN tbl_Variable v ON v.ID = rv.VariableID AND v.IsSubCategory = 1
-		    JOIN tbl_VariableValue va ON va.ID = rv.VariableValueID
-		    WHERE rv.SpeedRunID = rn.ID
-	        AND rv.Deleted = 0	        
-        ) v1
-    ) SubCategoryVariableValueNames ON TRUE	
-  	LEFT JOIN LATERAL (
-		SELECT CONCAT('[', p1.Value, ']') Value
-		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"ID":', CONVERT(p.ID,CHAR), ',"Name":"', REPLACE(REPLACE(p.Name,"\\","\\\\"),"\"","\\\""), '","Abbr":"', REPLACE(REPLACE(p.Abbr,"\\","\\\\"),"\"","\\\""), '","ColorLight":"', COALESCE(ps.ColorLight,''), '","ColorToLight":"', COALESCE(ps.ColorToLight,''), '","ColorDark":"', COALESCE(ps.ColorDark,''), '","ColorToDark":"', COALESCE(ps.ColorToDark,'')), '"}' ORDER BY rp.ID SEPARATOR ',') Value
-	        FROM tbl_SpeedRun_Player rp
-	        JOIN tbl_Player p ON p.ID = rp.PlayerID
-	        LEFT JOIN tbl_Player_NameStyle ps ON ps.PlayerID = p.ID 
-	        WHERE rp.SpeedRunID = rn.ID
-	        AND rp.Deleted = 0	        
-        ) p1
-    ) Players ON TRUE      
-  	LEFT JOIN LATERAL (
-		SELECT CONCAT('[', v1.Value, ']') Value
-		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"EmbeddedVideoLinkUrl":"', COALESCE(rv.EmbeddedVideoLinkUrl,''), '","ThumbnailLinkUrl":"', COALESCE(rv.ThumbnailLinkUrl,'')), '"}' ORDER BY rv.ID SEPARATOR ',') Value			
-	        FROM tbl_SpeedRun_Video rv
-	        WHERE rv.SpeedRunID = rn.ID
-	        AND rv.Deleted = 0	        
-        ) v1
-    ) Videos ON TRUE
+    LEFT JOIN tbl_Level l ON l.ID = rn.LevelID
+	LEFT JOIN LATERAL (
+		SELECT JSON_ARRAYAGG(va.Name) Value
+	    FROM tbl_SpeedRun_VariableValue rv
+	    JOIN tbl_Variable v ON v.ID = rv.VariableID AND v.IsSubCategory = 1
+	    JOIN tbl_VariableValue va ON va.ID = rv.VariableValueID
+	    WHERE rv.SpeedRunID = rn.ID
+        AND rv.Deleted = 0	        
+        ORDER BY rv.ID
+    ) SubCategoryVariableValueNames ON TRUE
+	LEFT JOIN LATERAL (
+		SELECT JSON_ARRAYAGG(JSON_OBJECT('ID', p.ID, 'Name', p.Name, 'Abbr', p.Abbr, 'ColorLight', ps.ColorLight, 'ColorToLight', ps.ColorToLight, 'ColorDark', ps.ColorDark, 'ColorToDark', ps.ColorToDark)) Value
+        FROM tbl_SpeedRun_Player rp
+        JOIN tbl_Player p ON p.ID = rp.PlayerID
+        LEFT JOIN tbl_Player_NameStyle ps ON ps.PlayerID = p.ID 
+        WHERE rp.SpeedRunID = rn.ID
+        AND rp.Deleted = 0	     
+        ORDER BY rp.ID
+    ) Players ON TRUE
+	LEFT JOIN LATERAL (
+		SELECT JSON_ARRAYAGG(JSON_OBJECT('EmbeddedVideoLinkUrl', rv.EmbeddedVideoLinkUrl, 'ThumbnailLinkUrl', rv.ThumbnailLinkUrl)) Value
+        FROM tbl_SpeedRun_Video rv
+        WHERE rv.SpeedRunID = rn.ID
+        AND rv.Deleted = 0	     
+        ORDER BY rv.ID
+    ) Videos ON TRUE     
     WHERE rn.Deleted = 0;
-   
- -- vw_SpeedRunSummary
-DROP VIEW IF EXISTS vw_SpeedRunSummary;
-
-CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunSummary AS
-
- 	SELECT rs.ID AS SortOrder,
-    	   rn.ID,	  
-    	   rn.Code, 
-           g.ID AS GameID,
-           g.Name AS GameName,
-		   g.Abbr AS GameAbbr, 
-	   	   g.ShowMilliseconds,   
-           gl.CoverImageUrl AS GameCoverImageUrl,        
-           ct.ID AS CategoryTypeID,
-           ct.Name AS CategoryTypeName,           
-           c.ID AS CategoryID,
-           c.Name AS CategoryName,
-		   l.ID AS LevelID,
-		   l.Name AS LevelName,
-           rn.SubCategoryVariableValueIDs,
-           rn.`Rank`,
-           rn.PrimaryTime,
-           rn.VerifyDate,
-           SubCategoryVariableValueNames.Value AS SubCategoryVariableValueNamesJson,
-           Players.Value AS PlayersJson,
-           Videos.Value AS VideosJson     
-    FROM tbl_SpeedRun rn
-    JOIN tbl_SpeedRun_Summary rs ON rs.SpeedRunID = rn.ID
-    JOIN tbl_Game g ON g.ID = rn.GameID
-	JOIN tbl_Game_Link gl ON gl.GameID = g.ID
-    JOIN tbl_Category c ON c.ID = rn.CategoryID
-    JOIN tbl_CategoryType ct ON ct.ID = c.CategoryTypeID
-    LEFT JOIN tbl_Level l ON l.ID = rn.LevelID 
-  	LEFT JOIN LATERAL (
-		SELECT CONCAT('[', v1.Value, ']') Value
-		FROM (
-			SELECT GROUP_CONCAT('"', va.Name, '"' ORDER BY rv.ID SEPARATOR ',') Value
-		    FROM tbl_SpeedRun_VariableValue rv
-		    JOIN tbl_Variable v ON v.ID = rv.VariableID AND v.IsSubCategory = 1
-		    JOIN tbl_VariableValue va ON va.ID = rv.VariableValueID
-		    WHERE rv.SpeedRunID = rn.ID
-	        AND rv.Deleted = 0	        
-        ) v1
-    ) SubCategoryVariableValueNames ON TRUE	
-  	LEFT JOIN LATERAL (
-		SELECT CONCAT('[', p1.Value, ']') Value
-		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"ID":', CONVERT(p.ID,CHAR), ',"Name":"', REPLACE(REPLACE(p.Name,"\\","\\\\"),"\"","\\\""), '","Abbr":"', REPLACE(REPLACE(p.Abbr,"\\","\\\\"),"\"","\\\""), '","ColorLight":"', COALESCE(ps.ColorLight,''), '","ColorToLight":"', COALESCE(ps.ColorToLight,''), '","ColorDark":"', COALESCE(ps.ColorDark,''), '","ColorToDark":"', COALESCE(ps.ColorToDark,'')), '"}' ORDER BY rp.ID SEPARATOR ',') Value
-	        FROM tbl_SpeedRun_Player rp
-	        JOIN tbl_Player p ON p.ID = rp.PlayerID
-	        LEFT JOIN tbl_Player_NameStyle ps ON ps.PlayerID = p.ID 
-	        WHERE rp.SpeedRunID = rn.ID
-	        AND rp.Deleted = 0	        
-        ) p1
-    ) Players ON TRUE      
-  	LEFT JOIN LATERAL (
-		SELECT CONCAT('[', v1.Value, ']') Value
-		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"EmbeddedVideoLinkUrl":"', COALESCE(rv.EmbeddedVideoLinkUrl,''), '","ThumbnailLinkUrl":"', COALESCE(rv.ThumbnailLinkUrl,'')), '"}' ORDER BY rv.ID SEPARATOR ',') Value			
-	        FROM tbl_SpeedRun_Video rv
-	        WHERE rv.SpeedRunID = rn.ID
-	        AND rv.Deleted = 0	        
-        ) v1
-    ) Videos ON TRUE
-    WHERE rn.Deleted = 0;  
    
 -- vw_SpeedRunDetail
 DROP VIEW IF EXISTS vw_SpeedRunDetail;
@@ -797,37 +701,31 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunDetail AS
     JOIN tbl_Category c ON c.ID = rn.CategoryID
     LEFT JOIN tbl_Level l ON l.ID = rn.LevelID    
     LEFT JOIN tbl_Platform p ON p.ID = rn.PlatformID
-  	LEFT JOIN LATERAL (
-		SELECT CONCAT('[', p1.Value, ']') Value
-		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"ID":', CONVERT(p.ID,CHAR), ',"Name":"', REPLACE(REPLACE(p.Name,"\\","\\\\"),"\"","\\\""), '","Abbr":"', REPLACE(REPLACE(p.Abbr,"\\","\\\\"),"\"","\\\""), '","ColorLight":"', COALESCE(ps.ColorLight,''), '","ColorToLight":"', COALESCE(ps.ColorToLight,''), '","ColorDark":"', COALESCE(ps.ColorDark,''), '","ColorToDark":"', COALESCE(ps.ColorToDark,'')), '"}' ORDER BY rp.ID SEPARATOR ',') Value
-	        FROM tbl_SpeedRun_Player rp
-	        JOIN tbl_Player p ON p.ID = rp.PlayerID
-	        LEFT JOIN tbl_Player_NameStyle ps ON ps.PlayerID = p.ID 
-	        WHERE rp.SpeedRunID = rn.ID
-	        AND rp.Deleted = 0	        
-        ) p1
+	LEFT JOIN LATERAL (
+		SELECT JSON_ARRAYAGG(JSON_OBJECT('ID', p.ID, 'Name', p.Name, 'Abbr', p.Abbr, 'ColorLight', ps.ColorLight, 'ColorToLight', ps.ColorToLight, 'ColorDark', ps.ColorDark, 'ColorToDark', ps.ColorToDark)) Value
+        FROM tbl_SpeedRun_Player rp
+        JOIN tbl_Player p ON p.ID = rp.PlayerID
+        LEFT JOIN tbl_Player_NameStyle ps ON ps.PlayerID = p.ID 
+        WHERE rp.SpeedRunID = rn.ID
+        AND rp.Deleted = 0	     
+        ORDER BY rp.ID
     ) Players ON TRUE    
-  	LEFT JOIN LATERAL (
-		SELECT CONCAT('{', v1.Value, '}') Value
-		FROM (
-			SELECT GROUP_CONCAT('"', CONCAT(REPLACE(REPLACE(v.Name,"\\","\\\\"),"\"","\\\""), '":"', REPLACE(REPLACE(va.Name,"\\","\\\\"),"\"","\\\""), '"') ORDER BY rv.ID SEPARATOR ',') Value        
-			FROM tbl_SpeedRun_VariableValue rv
-    		JOIN tbl_Variable v ON v.ID = rv.VariableID
-			JOIN tbl_VariableValue va ON va.ID = rv.VariableValueID
-	        WHERE rv.SpeedRunID = rn.ID
-	        AND rv.Deleted = 0	        
-        ) v1
+	LEFT JOIN LATERAL (
+		SELECT JSON_ARRAYAGG(JSON_OBJECT('ID', va.ID, 'Name', va.Name, 'VariableID', v.ID, 'VariableName', v.Name)) Value
+		FROM tbl_SpeedRun_VariableValue rv
+		JOIN tbl_Variable v ON v.ID = rv.VariableID
+		JOIN tbl_VariableValue va ON va.ID = rv.VariableValueID		
+        WHERE rv.SpeedRunID = rn.ID
+        AND rv.Deleted = 0	  
+        ORDER BY rv.ID
     ) VariableValues ON TRUE
-  	LEFT JOIN LATERAL (
-		SELECT CONCAT('[', v1.Value, ']') Value
-		FROM (
-			SELECT GROUP_CONCAT('{', CONCAT('"VideoLinkUrl":"', COALESCE(rv.VideoLinkUrl,''), '","EmbeddedVideoLinkUrl":"', COALESCE(rv.EmbeddedVideoLinkUrl,''), '","ThumbnailLinkUrl":"', COALESCE(rv.ThumbnailLinkUrl,'')), '"}' ORDER BY rv.ID SEPARATOR ',') Value			
-			FROM tbl_SpeedRun_Video rv
-	        WHERE rv.SpeedRunID = rn.ID
-	        AND rv.Deleted = 0	        
-        ) v1
-    ) Videos ON TRUE
+	LEFT JOIN LATERAL (
+		SELECT JSON_ARRAYAGG(JSON_OBJECT('VideoLinkUrl', rv.VideoLinkUrl, 'EmbeddedVideoLinkUrl', rv.EmbeddedVideoLinkUrl, 'ThumbnailLinkUrl', rv.ThumbnailLinkUrl)) Value
+        FROM tbl_SpeedRun_Video rv
+        WHERE rv.SpeedRunID = rn.ID
+        AND rv.Deleted = 0	     
+        ORDER BY rv.ID
+    ) Videos ON TRUE      
    WHERE rn.Deleted = 0;
      
 -- vw_User
