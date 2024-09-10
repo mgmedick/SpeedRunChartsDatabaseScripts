@@ -238,6 +238,7 @@ CREATE TABLE tbl_Player
     PRIMARY KEY (ID)
 );
 CREATE INDEX IDX_tbl_Player_Code ON tbl_Player (Code);
+CREATE INDEX IDX_tbl_Player_Abbr ON tbl_Player (Abbr); 
 
 -- tbl_Player_Link
 DROP TABLE IF EXISTS tbl_Player_Link;
