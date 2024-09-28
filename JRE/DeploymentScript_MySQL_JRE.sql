@@ -632,11 +632,18 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunSummary AS
            rn.`Rank`,
            rn.PrimaryTime,
            rn.VerifyDate,
+           rn.CreatedDate,
+           rn.ModifiedDate,
+           Video.SpeedRunVideoID,
+           Video.VideoLinkUrl,
+           Video.EmbeddedVideoLinkUrl,
+           Video.ThumbnailLinkUrl,        
+           Video.ChannelCode,              
+           Video.ViewCount,               
            SubCategoryVariableValueNames.Value AS SubCategoryVariableValueNamesJson,
-           Players.Value AS PlayersJson,
-           Videos.Value AS VideosJson     
+           Players.Value AS PlayersJson
     FROM tbl_SpeedRun rn
-    JOIN tbl_SpeedRun_Summary rs ON rs.SpeedRunID = rn.ID
+    JOIN tbl_SpeedRun_Summary rs ON rs.SpeedRunID = rn.ID AND rs.Deleted = 0
     JOIN tbl_Game g ON g.ID = rn.GameID
 	JOIN tbl_Game_Link gl ON gl.GameID = g.ID
     JOIN tbl_Category c ON c.ID = rn.CategoryID
@@ -661,13 +668,14 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunSummary AS
         ORDER BY rp.ID
     ) Players ON TRUE
 	LEFT JOIN LATERAL (
-		SELECT JSON_ARRAYAGG(JSON_OBJECT('EmbeddedVideoLinkUrl', rv.EmbeddedVideoLinkUrl, 'ThumbnailLinkUrl', rv.ThumbnailLinkUrl)) Value
-        FROM tbl_SpeedRun_Video rv
+		SELECT rv.ID AS SpeedRunVideoID, rv.VideoLinkUrl, rv.EmbeddedVideoLinkUrl, rv.ThumbnailLinkUrl, rv.ChannelCode, rv.ViewCount
+		FROM tbl_SpeedRun_Video rv
         WHERE rv.SpeedRunID = rn.ID
-        AND rv.Deleted = 0	     
+        AND rv.Deleted = 0
         ORDER BY rv.ID
-    ) Videos ON TRUE     
-    WHERE rn.Deleted = 0;
+        LIMIT 1
+    ) Video ON TRUE       
+    WHERE rn.Deleted = 0; 
    
 -- vw_SpeedRunDetail
 DROP VIEW IF EXISTS vw_SpeedRunDetail;
@@ -1110,9 +1118,14 @@ BEGIN
 		       rn.`Rank`,
 		       rn.PrimaryTime,
 		       rn.VerifyDate,
+	           rn.SpeedRunVideoID,
+	           rn.VideoLinkUrl,
+	           rn.EmbeddedVideoLinkUrl,
+	           rn.ThumbnailLinkUrl,        
+	           rn.ChannelCode,              
+	           rn.ViewCount,   		       
 		       rn.SubCategoryVariableValueNamesJson,
-		       rn.PlayersJson,
-		       rn.VideosJson     
+		       rn.PlayersJson  
 		      FROM vw_SpeedRunSummary rn
 		      WHERE ((OrderValueOffset IS NULL) OR (rn.SortOrder < OrderValueOffset))
 			  AND ((CategoryTypeID IS NULL) OR (rn.CategoryTypeID = CategoryTypeID))          
@@ -1136,9 +1149,14 @@ BEGIN
 		       rn.`Rank`,
 		       rn.PrimaryTime,
 		       rn.VerifyDate,
+	           rn.SpeedRunVideoID,
+	           rn.VideoLinkUrl,
+	           rn.EmbeddedVideoLinkUrl,
+	           rn.ThumbnailLinkUrl,        
+	           rn.ChannelCode,              
+	           rn.ViewCount,   			       
 		       rn.SubCategoryVariableValueNamesJson,
-		       rn.PlayersJson,
-		       rn.VideosJson     
+		       rn.PlayersJson  
 		      FROM vw_SpeedRunSummary rn
 		      WHERE ((OrderValueOffset IS NULL) OR (rn.SortOrder < OrderValueOffset))
 			  AND ((CategoryTypeID IS NULL) OR (rn.CategoryTypeID = CategoryTypeID))
@@ -1170,9 +1188,14 @@ BEGIN
 		       rn.`Rank`,
 		       rn.PrimaryTime,
 		       rn.VerifyDate,
+	           rn.SpeedRunVideoID,
+	           rn.VideoLinkUrl,
+	           rn.EmbeddedVideoLinkUrl,
+	           rn.ThumbnailLinkUrl,        
+	           rn.ChannelCode,              
+	           rn.ViewCount,   			       
 		       rn.SubCategoryVariableValueNamesJson,
-		       rn.PlayersJson,
-		       rn.VideosJson     
+		       rn.PlayersJson  
 		      FROM vw_SpeedRunSummary rn
 		      WHERE ((OrderValueOffset IS NULL) OR (rn.SortOrder < OrderValueOffset))
 			  AND ((CategoryTypeID IS NULL) OR (rn.CategoryTypeID = CategoryTypeID))
@@ -1190,6 +1213,7 @@ BEGIN
 END $$
 DELIMITER ;
 
+
 /*********************************************/
 -- populate tables
 /*********************************************/
@@ -1198,7 +1222,15 @@ SELECT 'LastImportDate', NULL, NULL, NULL
 UNION ALL
 SELECT 'GameLastImportRefDate', NULL, NULL, NULL
 UNION ALL
-SELECT 'SpeedRunLastImportRefDate', NULL, NULL, NULL;
+SELECT 'SpeedRunLastImportRefDate', NULL, NULL, NULL
+UNION ALL
+SELECT 'ReloadTime', '07:00', NULL, NULL
+UNION ALL
+SELECT 'YouTubeAPIEnabled',NULL,'1',NULL
+UNION ALL
+SELEC 'TwitchAPIEnabled',NULL,'1',NULL
+UNION ALL
+SELECT 'TwitchToken','6joldecpxrwo46fn7dwq95xfd9163l',NULL,NULL;
 
 INSERT INTO tbl_CategoryType (ID, Name)
 SELECT '0', 'PerGame'
