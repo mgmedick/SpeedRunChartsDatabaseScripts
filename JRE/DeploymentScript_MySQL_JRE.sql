@@ -687,6 +687,9 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunDetail AS
     	   rn.Code,
            g.ID AS GameID,
            g.Name AS GameName,
+		   g.Abbr AS GameAbbr, 
+	   	   g.ShowMilliseconds,   
+           gl.CoverImageUrl AS GameCoverImageUrl,             
            rn.CategoryTypeID,
            c.ID AS CategoryID,
            c.Name AS CategoryName,
@@ -708,6 +711,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunDetail AS
     FROM tbl_SpeedRun rn
     JOIN tbl_SpeedRun_Link rl ON rl.SpeedRunID = rn.ID
     JOIN tbl_Game g ON g.ID = rn.GameID
+	JOIN tbl_Game_Link gl ON gl.GameID = g.ID    
     JOIN tbl_Category c ON c.ID = rn.CategoryID
     LEFT JOIN tbl_Level l ON l.ID = rn.LevelID    
     LEFT JOIN tbl_Platform p ON p.ID = rn.PlatformID
@@ -730,7 +734,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRunDetail AS
         ORDER BY rv.ID
     ) VariableValues ON TRUE
 	LEFT JOIN LATERAL (
-		SELECT JSON_ARRAYAGG(JSON_OBJECT('VideoLinkUrl', rv.VideoLinkUrl, 'EmbeddedVideoLinkUrl', rv.EmbeddedVideoLinkUrl, 'ThumbnailLinkUrl', rv.ThumbnailLinkUrl)) Value
+		SELECT JSON_ARRAYAGG(JSON_OBJECT('VideoLinkUrl', rv.VideoLinkUrl, 'EmbeddedVideoLinkUrl', rv.EmbeddedVideoLinkUrl, 'ViewCount', rv.ViewCount)) Value
         FROM tbl_SpeedRun_Video rv
         WHERE rv.SpeedRunID = rn.ID
         AND rv.Deleted = 0	     
@@ -1209,7 +1213,40 @@ BEGIN
 		  					AND COALESCE(rn1.SubCategoryVariableValueIDs,'') = COALESCE(rn.SubCategoryVariableValueIDs,'')
 		  					AND rn1.`Rank` > 3)
 		      ORDER BY rn.SortOrder DESC
-		      LIMIT TopAmount;		     
+		      LIMIT TopAmount;		
+	ELSEIF SummaryListID = 3 THEN
+		SELECT rn.SortOrder,
+			   rn.ID,	  
+			   rn.Code, 
+		       rn.GameID,
+		       rn.GameName,
+			   rn.GameAbbr, 
+		   	   rn.ShowMilliseconds,   
+		       rn.GameCoverImageUrl,        
+		       rn.CategoryTypeID,
+		       rn.CategoryTypeName,           
+		       rn.CategoryID,
+		       rn.CategoryName,
+			   rn.LevelID,
+			   rn.LevelName,
+		       rn.`Rank`,
+		       rn.PrimaryTime,
+		       rn.VerifyDate,
+	           rn.SpeedRunVideoID,
+	           rn.VideoLinkUrl,
+	           rn.EmbeddedVideoLinkUrl,
+	           rn.ThumbnailLinkUrl,        
+	           rn.ChannelCode,              
+	           rn.ViewCount,   			       
+		       rn.SubCategoryVariableValueNamesJson,
+		       rn.PlayersJson  
+		      FROM vw_SpeedRunSummary rn
+		      WHERE ((OrderValueOffset IS NULL) OR (rn.SortOrder < OrderValueOffset))
+			  AND ((CategoryTypeID IS NULL) OR (rn.CategoryTypeID = CategoryTypeID))
+			  AND rn.`Rank` = 1
+			  AND rn.ViewCount >= 100
+		      ORDER BY rn.SortOrder DESC
+		      LIMIT TopAmount; 		     
 	END IF;
 END $$
 DELIMITER ;
@@ -1254,10 +1291,11 @@ SELECT '1', 'Guest';
 INSERT INTO tbl_SummaryList (ID, Name, DisplayName, Description, IsDefault, DefaultSortOrder) 
 SELECT '0', 'New', 'New', 'Newly verified runs', 1, 0
 UNION ALL
-SELECT '1', 'WorldRecord', 'WRs', 'World Records in category with pre-existing runs', 1, 1
+SELECT '1', 'WorldRecord', 'World Records', 'World Records in category with pre-existing runs', 1, 2
 UNION ALL
-SELECT '2', 'Top3', 'Top 3', 'Runs in top 3 of category with pre-existing runs', 1, 2;
-
+SELECT '2', 'Top3', 'Top 3', 'Runs in top 3 of category with pre-existing runs', 1, 3
+UNION ALL
+SELECT '3', 'Popular', 'Popular', 'Runs with 100+ views', 1, 1
 
 
 
