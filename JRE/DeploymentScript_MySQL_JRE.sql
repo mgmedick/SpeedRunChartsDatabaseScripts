@@ -829,7 +829,7 @@ BEGIN
           CategoryID INT,
           LevelID INT,
           SubCategoryVariableValueIDs VARCHAR(255),
-          PlayerIDs VARCHAR(150),
+          PlayerIDs VARCHAR(500),
           PrimaryTime BIGINT,
           IsTimerAscending BIT,          
           RankPriority INT,
