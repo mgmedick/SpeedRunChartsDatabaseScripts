@@ -911,6 +911,7 @@ BEGIN
 		SELECT GROUP_CONCAT(CONVERT(rp.PlayerID,CHAR) ORDER BY rp.ID SEPARATOR ',') Value
 	    FROM tbl_SpeedRun_Player rp
 		WHERE rp.SpeedRunID = rn.ID
+		AND rp.Deleted = 0
 	) PlayerIDs ON TRUE
 	WHERE rn.Deleted = 0;
   
