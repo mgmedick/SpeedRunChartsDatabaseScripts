@@ -1,4 +1,4 @@
-USE SpeedRunAppJRE;
+-- USE SpeedRunAppJRE;
 
 /*********************************************/
 -- create/alter tables
@@ -1249,6 +1249,61 @@ BEGIN
 		      ORDER BY rn.SortOrder DESC
 		      LIMIT TopAmount; 		     
 	END IF;
+END $$
+DELIMITER ;
+
+-- ImportRenameFullTables
+DROP PROCEDURE IF EXISTS ImportRenameFullTables;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE ImportRenameFullTables()
+BEGIN	
+	
+	IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'SpeedRunAppJREOld')
+	   AND EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'SpeedRunAppJRENew') THEN
+		RENAME TABLE speedrunappjre.`tbl_game` TO speedrunappjreold.`tbl_game`;
+		RENAME TABLE speedrunappjre.`tbl_game_link` TO speedrunappjreold.`tbl_game_link`;
+		RENAME TABLE speedrunappjre.`tbl_game_categorytype` TO speedrunappjreold.`tbl_game_categorytype`;
+		RENAME TABLE speedrunappjre.`tbl_category` TO speedrunappjreold.`tbl_category`;
+		RENAME TABLE speedrunappjre.`tbl_level` TO speedrunappjreold.`tbl_level`;
+		RENAME TABLE speedrunappjre.`tbl_variablescopetype` TO speedrunappjreold.`tbl_variablescopetype`;
+		RENAME TABLE speedrunappjre.`tbl_variable` TO speedrunappjreold.`tbl_variable`;
+		RENAME TABLE speedrunappjre.`tbl_variablevalue` TO speedrunappjreold.`tbl_variablevalue`;
+		RENAME TABLE speedrunappjre.`tbl_platform` TO speedrunappjreold.`tbl_platform`;
+		RENAME TABLE speedrunappjre.`tbl_game_platform` TO speedrunappjreold.`tbl_game_platform`;
+		RENAME TABLE speedrunappjre.`tbl_player_link` TO speedrunappjreold.`tbl_player_link`;
+		RENAME TABLE speedrunappjre.`tbl_player_namestyle` TO speedrunappjreold.`tbl_player_namestyle`;
+		RENAME TABLE speedrunappjre.`tbl_speedrun_link` TO speedrunappjreold.`tbl_speedrun_link`;
+		RENAME TABLE speedrunappjre.`tbl_speedrun_variablevalue` TO speedrunappjreold.`tbl_speedrun_variablevalue`;
+		RENAME TABLE speedrunappjre.`tbl_speedrun_video` TO speedrunappjreold.`tbl_speedrun_video`;
+		RENAME TABLE speedrunappjre.`tbl_setting` TO speedrunappjreold.`tbl_setting`;
+		RENAME TABLE speedrunappjre.`tbl_speedrun` TO speedrunappjreold.`tbl_speedrun`;
+		RENAME TABLE speedrunappjre.`tbl_speedrun_summary` TO speedrunappjreold.`tbl_speedrun_summary`;
+		RENAME TABLE speedrunappjre.`tbl_player` TO speedrunappjreold.`tbl_player`;
+		RENAME TABLE speedrunappjre.`tbl_speedrun_player` TO speedrunappjreold.`tbl_speedrun_player`;
+		
+		RENAME TABLE speedrunappjrenew.`tbl_game` TO speedrunappjre.`tbl_game`;
+		RENAME TABLE speedrunappjrenew.`tbl_game_link` TO speedrunappjre.`tbl_game_link`;
+		RENAME TABLE speedrunappjrenew.`tbl_game_categorytype` TO speedrunappjre.`tbl_game_categorytype`;
+		RENAME TABLE speedrunappjrenew.`tbl_category` TO speedrunappjre.`tbl_category`;
+		RENAME TABLE speedrunappjrenew.`tbl_level` TO speedrunappjre.`tbl_level`;
+		RENAME TABLE speedrunappjrenew.`tbl_variablescopetype` TO speedrunappjre.`tbl_variablescopetype`;
+		RENAME TABLE speedrunappjrenew.`tbl_variable` TO speedrunappjre.`tbl_variable`;
+		RENAME TABLE speedrunappjrenew.`tbl_variablevalue` TO speedrunappjre.`tbl_variablevalue`;
+		RENAME TABLE speedrunappjrenew.`tbl_platform` TO speedrunappjre.`tbl_platform`;
+		RENAME TABLE speedrunappjrenew.`tbl_game_platform` TO speedrunappjre.`tbl_game_platform`;
+		RENAME TABLE speedrunappjrenew.`tbl_player_link` TO speedrunappjre.`tbl_player_link`;
+		RENAME TABLE speedrunappjrenew.`tbl_player_namestyle` TO speedrunappjre.`tbl_player_namestyle`;
+		RENAME TABLE speedrunappjrenew.`tbl_speedrun_link` TO speedrunappjre.`tbl_speedrun_link`;
+		RENAME TABLE speedrunappjrenew.`tbl_speedrun_variablevalue` TO speedrunappjre.`tbl_speedrun_variablevalue`;
+		RENAME TABLE speedrunappjrenew.`tbl_speedrun_video` TO speedrunappjre.`tbl_speedrun_video`;
+		RENAME TABLE speedrunappjrenew.`tbl_setting` TO speedrunappjre.`tbl_setting`;
+		RENAME TABLE speedrunappjrenew.`tbl_speedrun` TO speedrunappjre.`tbl_speedrun`;
+		RENAME TABLE speedrunappjrenew.`tbl_speedrun_summary` TO speedrunappjre.`tbl_speedrun_summary`;
+		RENAME TABLE speedrunappjrenew.`tbl_player` TO speedrunappjre.`tbl_player`;
+		RENAME TABLE speedrunappjrenew.`tbl_speedrun_player` TO speedrunappjre.`tbl_speedrun_player`;
+	END IF;
+
 END $$
 DELIMITER ;
 
