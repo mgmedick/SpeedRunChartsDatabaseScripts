@@ -1266,7 +1266,6 @@ BEGIN
 		RENAME TABLE speedrunappjre.`tbl_game_categorytype` TO speedrunappjreold.`tbl_game_categorytype`;
 		RENAME TABLE speedrunappjre.`tbl_category` TO speedrunappjreold.`tbl_category`;
 		RENAME TABLE speedrunappjre.`tbl_level` TO speedrunappjreold.`tbl_level`;
-		RENAME TABLE speedrunappjre.`tbl_variablescopetype` TO speedrunappjreold.`tbl_variablescopetype`;
 		RENAME TABLE speedrunappjre.`tbl_variable` TO speedrunappjreold.`tbl_variable`;
 		RENAME TABLE speedrunappjre.`tbl_variablevalue` TO speedrunappjreold.`tbl_variablevalue`;
 		RENAME TABLE speedrunappjre.`tbl_platform` TO speedrunappjreold.`tbl_platform`;
@@ -1287,7 +1286,6 @@ BEGIN
 		RENAME TABLE speedrunappjrenew.`tbl_game_categorytype` TO speedrunappjre.`tbl_game_categorytype`;
 		RENAME TABLE speedrunappjrenew.`tbl_category` TO speedrunappjre.`tbl_category`;
 		RENAME TABLE speedrunappjrenew.`tbl_level` TO speedrunappjre.`tbl_level`;
-		RENAME TABLE speedrunappjrenew.`tbl_variablescopetype` TO speedrunappjre.`tbl_variablescopetype`;
 		RENAME TABLE speedrunappjrenew.`tbl_variable` TO speedrunappjre.`tbl_variable`;
 		RENAME TABLE speedrunappjrenew.`tbl_variablevalue` TO speedrunappjre.`tbl_variablevalue`;
 		RENAME TABLE speedrunappjrenew.`tbl_platform` TO speedrunappjre.`tbl_platform`;
