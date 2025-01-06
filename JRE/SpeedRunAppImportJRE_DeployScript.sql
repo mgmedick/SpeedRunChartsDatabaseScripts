@@ -1244,7 +1244,6 @@ BEGIN
 		      FROM vw_SpeedRunSummary rn
 		      WHERE ((OrderValueOffset IS NULL) OR (rn.SortOrder < OrderValueOffset))
 			  AND ((CategoryTypeID IS NULL) OR (rn.CategoryTypeID = CategoryTypeID))
-			  AND rn.`Rank` = 1
 			  AND rn.ViewCount >= 100
 		      ORDER BY rn.SortOrder DESC
 		      LIMIT TopAmount; 		     
