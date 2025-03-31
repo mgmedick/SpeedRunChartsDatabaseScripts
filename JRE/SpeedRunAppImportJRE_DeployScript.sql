@@ -180,8 +180,9 @@ CREATE TABLE tbl_VariableValue
     Code varchar(10) NOT NULL,
     GameID int NOT NULL,   
     VariableID int NOT NULL,  
-    IsMiscellaneous bit NOT NULL,
+    IsMiscellaneous bit NOT NULL,   
     Deleted bit NOT NULL,
+    SortOrder int NULL,     
     PRIMARY KEY (ID)      
 );
 CREATE INDEX IDX_tbl_VariableValue_GameID ON tbl_VariableValue (GameID);
@@ -427,7 +428,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_Game AS
 	    FROM tbl_VariableValue v
 	    WHERE v.GameID = g.ID
 	    AND v.Deleted = 0	
-        ORDER BY v.ID 
+        ORDER BY v.SortOrder, v.ID 
     ) VariableValues ON TRUE   
 	LEFT JOIN LATERAL (
 		SELECT JSON_ARRAYAGG(JSON_OBJECT('ID', gp.ID, 'PlatformID', gp.PlatformID)) Value
