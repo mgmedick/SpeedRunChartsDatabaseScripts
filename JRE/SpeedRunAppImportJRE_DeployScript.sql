@@ -1275,12 +1275,11 @@ BEGIN
 		RENAME TABLE speedrunappjre.`tbl_speedrun_link` TO speedrunappjreold.`tbl_speedrun_link`;
 		RENAME TABLE speedrunappjre.`tbl_speedrun_variablevalue` TO speedrunappjreold.`tbl_speedrun_variablevalue`;
 		RENAME TABLE speedrunappjre.`tbl_speedrun_video` TO speedrunappjreold.`tbl_speedrun_video`;
-		RENAME TABLE speedrunappjre.`tbl_setting` TO speedrunappjreold.`tbl_setting`;
 		RENAME TABLE speedrunappjre.`tbl_speedrun` TO speedrunappjreold.`tbl_speedrun`;
 		RENAME TABLE speedrunappjre.`tbl_speedrun_summary` TO speedrunappjreold.`tbl_speedrun_summary`;
 		RENAME TABLE speedrunappjre.`tbl_player` TO speedrunappjreold.`tbl_player`;
-		RENAME TABLE speedrunappjre.`tbl_speedrun_player` TO speedrunappjreold.`tbl_speedrun_player`;
-		
+		RENAME TABLE speedrunappjre.`tbl_speedrun_player` TO speedrunappjreold.`tbl_speedrun_player`;	
+	
 		RENAME TABLE speedrunappjrenew.`tbl_game` TO speedrunappjre.`tbl_game`;
 		RENAME TABLE speedrunappjrenew.`tbl_game_link` TO speedrunappjre.`tbl_game_link`;
 		RENAME TABLE speedrunappjrenew.`tbl_game_categorytype` TO speedrunappjre.`tbl_game_categorytype`;
@@ -1295,11 +1294,16 @@ BEGIN
 		RENAME TABLE speedrunappjrenew.`tbl_speedrun_link` TO speedrunappjre.`tbl_speedrun_link`;
 		RENAME TABLE speedrunappjrenew.`tbl_speedrun_variablevalue` TO speedrunappjre.`tbl_speedrun_variablevalue`;
 		RENAME TABLE speedrunappjrenew.`tbl_speedrun_video` TO speedrunappjre.`tbl_speedrun_video`;
-		RENAME TABLE speedrunappjrenew.`tbl_setting` TO speedrunappjre.`tbl_setting`;
 		RENAME TABLE speedrunappjrenew.`tbl_speedrun` TO speedrunappjre.`tbl_speedrun`;
 		RENAME TABLE speedrunappjrenew.`tbl_speedrun_summary` TO speedrunappjre.`tbl_speedrun_summary`;
 		RENAME TABLE speedrunappjrenew.`tbl_player` TO speedrunappjre.`tbl_player`;
 		RENAME TABLE speedrunappjrenew.`tbl_speedrun_player` TO speedrunappjre.`tbl_speedrun_player`;
+	
+		UPDATE speedrunappjre.`tbl_setting` dn
+	  	JOIN speedrunappjrenew.`tbl_setting`dn1 ON dn1.Name = dn.Name
+	  	SET dn.Str = dn1.Str,
+		    dn.Num = dn1.Num,
+		    dn.Dte = dn1.Dte;	
 	END IF;
 
 END $$
