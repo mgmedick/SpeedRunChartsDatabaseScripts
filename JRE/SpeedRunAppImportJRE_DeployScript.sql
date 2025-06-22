@@ -490,7 +490,7 @@ CREATE DEFINER=`root`@`localhost` VIEW vw_SpeedRun AS
            VariableValues.Value AS VariableValuesJson,
            Videos.Value AS VideosJson
     FROM tbl_SpeedRun rn
-    JOIN tbl_SpeedRun_Link rl ON rl.SpeedRunID = rn.ID  
+    JOIN tbl_SpeedRun_Link rl ON rl.SpeedRunID = rn.ID
 	LEFT JOIN LATERAL (
 		SELECT JSON_ARRAYAGG(JSON_OBJECT('ID', rp.ID, 'PlayerID', rp.PlayerID)) Value
         FROM tbl_SpeedRun_Player rp
@@ -1041,13 +1041,18 @@ BEGIN
 	WHERE dn.Deleted = 0
 	AND COALESCE(rn.VerifyDate, '1753-01-01 00:00:00') < StartDate;
 
+	UPDATE tbl_SpeedRun_Summary dn
+	SET dn.Deleted = 1
+	WHERE dn.Deleted = 0
+	AND NOT EXISTS (SELECT 1 FROM tbl_SpeedRun_Video rv WHERE rv.SpeedRunID = dn.SpeedRunID AND rv.EmbeddedVideoLinkUrl IS NOT NULL AND rv.Deleted = 0);
+
 	INSERT INTO tbl_SpeedRun_Summary (SpeedRunID, Deleted)
 	SELECT rn.ID, 0
 	FROM tbl_SpeedRun rn
 	WHERE rn.Deleted = 0
 	AND rn.VerifyDate >= StartDate
 	AND rn.CreatedDate > LastImportDate
-	AND EXISTS (SELECT 1 FROM tbl_SpeedRun_Video rv WHERE rv.SpeedRunID = rn.ID AND rv.EmbeddedVideoLinkUrl IS NOT NULL)
+	AND EXISTS (SELECT 1 FROM tbl_SpeedRun_Video rv WHERE rv.SpeedRunID = rn.ID AND rv.EmbeddedVideoLinkUrl IS NOT NULL AND rv.Deleted = 0)
 	AND NOT EXISTS (SELECT 1 FROM tbl_SpeedRun_Summary rn2 WHERE rn2.SpeedRunID = rn.ID)
 	ORDER BY rn.VerifyDate;
 	
